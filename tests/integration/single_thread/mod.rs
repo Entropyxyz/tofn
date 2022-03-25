@@ -6,7 +6,7 @@ use execute::*;
 use tofn::{
     collections::{TypedUsize, VecMap},
     gg20::{
-        ceygen, keygen,
+        keygen,
         sign::{new_sign, MessageDigest, SignParties, SignShareId},
     },
     sdk::api::{PartyShareCounts, Protocol},
@@ -115,9 +115,9 @@ fn basic_ceygen_correctness() {
 
     // keygen
     let party_share_counts = PartyShareCounts::from_vec(vec![1, 2, 3, 4]).unwrap(); // 10 total shares
-    let threshold = 5;
+    let threshold = 4;
     debug!(
-        "total_share_count {}, threshold {}",
+        "ceygen total_share_count {}, threshold {}",
         party_share_counts.total_share_count(),
         threshold,
     );
@@ -131,7 +131,7 @@ fn basic_ceygen_correctness() {
         tofn::gg20::ceygen::initialize_honest_parties(&party_share_counts, threshold, alice_key);
 
     // sign
-    debug!("sign...");
+    debug!("ceygen sign...");
     let sign_parties = {
         let mut sign_parties = SignParties::with_max_size(party_share_counts.party_count());
         sign_parties.add(TypedUsize::from_usize(0)).unwrap();
