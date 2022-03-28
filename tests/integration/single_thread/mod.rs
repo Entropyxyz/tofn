@@ -33,7 +33,7 @@ fn set_up_logs() {
         .try_init();
 }
 /// A simple test to illustrate use of the library
-// #[test]
+#[test]
 // #[traced_test]
 fn _basic_correctness() {
     set_up_logs();
@@ -44,7 +44,7 @@ fn _basic_correctness() {
     let sign_parties = {
         let mut sign_parties = SignParties::with_max_size(party_share_counts.party_count());
         sign_parties.add(TypedUsize::from_usize(0)).unwrap();
-        sign_parties.add(TypedUsize::from_usize(1)).unwrap();
+        // sign_parties.add(TypedUsize::from_usize(1)).unwrap();
         sign_parties.add(TypedUsize::from_usize(3)).unwrap();
         sign_parties
     };
@@ -113,9 +113,9 @@ fn _basic_correctness() {
 fn basic_ceygen_correctness() {
     set_up_logs();
 
-    // keygen
-    let party_share_counts = PartyShareCounts::from_vec(vec![1, 2, 3, 4]).unwrap(); // 10 total shares
-    let threshold = 4;
+    let party_share_counts = PartyShareCounts::from_vec(vec![1, 1, 1, 1]).unwrap(); // 10 total shares
+    // note: Number of shares used must exceed threshold by 1.
+    let threshold = 3;
     debug!(
         "ceygen total_share_count {}, threshold {}",
         party_share_counts.total_share_count(),
@@ -136,6 +136,7 @@ fn basic_ceygen_correctness() {
         let mut sign_parties = SignParties::with_max_size(party_share_counts.party_count());
         sign_parties.add(TypedUsize::from_usize(0)).unwrap();
         sign_parties.add(TypedUsize::from_usize(1)).unwrap();
+        sign_parties.add(TypedUsize::from_usize(2)).unwrap();
         sign_parties.add(TypedUsize::from_usize(3)).unwrap();
         sign_parties
     };
