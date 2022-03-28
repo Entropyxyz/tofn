@@ -1,7 +1,5 @@
 //! Helpers for secret sharing
-use crate::{
-    crypto_tools::k256_serde,
-};
+use crate::crypto_tools::k256_serde;
 use ecdsa::elliptic_curve::Field;
 use serde::{Deserialize, Serialize};
 // use tracing::error;
@@ -17,19 +15,19 @@ pub struct Ss {
     secret_coeffs: Coefficients,
 }
 impl Ss {
+    /// Recall that a t-of-n sharing requires t+1 points of a degree t polynomial to recover the secret.
+    /// Therefore, select t-1 random coefficients, for a total of t coefficients after including Alice's key.
     pub fn new_byok(threshold: usize, alice_key: Coefficient) -> Self {
         let secret_coeffs: Coefficients = vec![alice_key]
             .into_iter()
             .chain(
-                std::iter::repeat_with(|| {
-                    <Coefficient as ecdsa::elliptic_curve::Field>::random(rand::thread_rng())
-                })
-                .take(threshold),
+                std::iter::repeat_with(|| Coefficient::random(rand::thread_rng()))
+                    .take(threshold - 1),
             )
             .collect();
         Self { secret_coeffs }
     }
-    
+
     #[allow(dead_code)]
     pub fn new(threshold: usize) -> Self {
         let secret_coeffs: Vec<k256::Scalar> = (0..=threshold)
@@ -92,12 +90,11 @@ impl Share {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
     #[allow(unused_imports)]
-    use crate::crypto_tools::vss::{lagrange_coefficient,recover_secret};
+    use crate::crypto_tools::vss::{lagrange_coefficient, recover_secret};
     use rand::prelude::SliceRandom;
 
     #[test]
@@ -165,5 +162,3 @@ mod tests {
         assert_eq!(recovered_secret, *ss.get_secret());
     }
 }
-    
-    

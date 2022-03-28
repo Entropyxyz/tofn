@@ -1,13 +1,10 @@
-use std::{convert::TryInto, ops::Mul};
 use crate::{
     collections::{TypedUsize, VecMap},
     crypto_tools::{
-        k256_serde::{ProjectivePoint, Scalar, self},
-        paillier::{
-            self,
-            zk::{ZkSetup},
-        },
-        rng, ss::{Ss, Share},
+        k256_serde::{self, ProjectivePoint, Scalar},
+        paillier::{self, zk::ZkSetup},
+        rng,
+        ss::{Share, Ss},
     },
     gg20::{
         constants::{KEYPAIR_TAG, ZKSETUP_TAG},
@@ -16,13 +13,10 @@ use crate::{
             SharePublicInfo,
         },
     },
-    sdk::{
-        api::{PartyShareCounts, TofnFatal, TofnResult},
-        
-    },
+    sdk::api::{PartyShareCounts, TofnFatal, TofnResult},
 };
+use std::{convert::TryInto, ops::Mul};
 use tracing::error;
-
 
 /// Pre-image of `SecretKeyShare` in ceygen.
 pub type CeygenShareInfo = (SharePublicInfo, ShareSecretInfo);
@@ -40,8 +34,7 @@ use super::malicious;
 pub const MAX_MSG_LEN: usize = 5500;
 
 use crate::gg20::keygen::{
-    KeygenPartyId, KeygenPartyShareCounts, KeygenShareId,
-    PartyKeyPair, PartyKeygenData,
+    KeygenPartyId, KeygenPartyShareCounts, KeygenShareId, PartyKeyPair, PartyKeygenData,
 };
 pub use rng::SecretRecoveryKey;
 
@@ -51,7 +44,7 @@ pub fn initialize_honest_parties(
     alice_key: k256::Scalar,
 ) -> VecMap<KeygenShareId, SecretKeyShare> {
     let session_nonce = b"foobar";
-    let shares = Ss::new_byok(threshold, alice_key).shares(party_share_counts.party_count());
+    let shares = Ss::new_byok(threshold, alice_key).shares(party_share_counts.total_share_count());
 
     let (v_public_info, v_secret_info): (Vec<SharePublicInfo>, Vec<ShareSecretInfo>) =
         party_share_counts
@@ -60,6 +53,11 @@ pub fn initialize_honest_parties(
             .map(|((party_id, &party_share_count), share)| {
                 // each party use the same secret recovery key for all its subshares
                 let secret_recovery_key = super::dummy_secret_recovery_key(party_id);
+                //todo
+                println!(
+                    "party_id: {:?}\nparty_share_count:{}\nshare: {:?}",
+                    party_id, party_share_count, share
+                );
                 let party_keygen_data = create_party_keypair_and_zksetup_unsafe(
                     party_id,
                     &secret_recovery_key,
