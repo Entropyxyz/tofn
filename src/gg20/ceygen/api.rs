@@ -53,11 +53,6 @@ pub fn initialize_honest_parties(
             .map(|((party_id, &party_share_count), share)| {
                 // each party use the same secret recovery key for all its subshares
                 let secret_recovery_key = super::dummy_secret_recovery_key(party_id);
-                //todo
-                println!(
-                    "party_id: {:?}\nparty_share_count:{}\nshare: {:?}",
-                    party_id, party_share_count, share
-                );
                 let party_keygen_data = create_party_keypair_and_zksetup_unsafe(
                     party_id,
                     &secret_recovery_key,
