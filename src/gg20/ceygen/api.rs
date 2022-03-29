@@ -71,7 +71,7 @@ pub fn initialize_honest_parties(
                         #[cfg(feature = "malicious")]
                         Behaviour::Honest,
                     )
-                    .unwrap()
+                    .expect("bad ceygen; need parties >= threshold+1")
                 })
             })
             .flatten()

@@ -1,17 +1,18 @@
-use tofn::{
-    collections::{TypedUsize, VecMap},
-    crypto_tools::message_digest::MessageDigest,
-    gg20::{
-        keygen::{KeygenPartyId, KeygenShareId, SecretKeyShare},
-        sign::{new_sign, SignParties, SignShareId}, self,
-    },
-    sdk::api::{PartyShareCounts, Protocol},
-};
 use chrono::{Datelike, Timelike, Utc};
 use clap::{Args, Parser, Result, Subcommand};
 use ecdsa::{elliptic_curve::sec1::FromEncodedPoint, hazmat::VerifyPrimitive};
 use k256::SecretKey;
 use std::{convert::TryFrom, fs, path::Path};
+use tofn::{
+    collections::{TypedUsize, VecMap},
+    crypto_tools::message_digest::MessageDigest,
+    gg20::{
+        self,
+        keygen::{KeygenPartyId, KeygenShareId, SecretKeyShare},
+        sign::{new_sign, SignParties, SignShareId},
+    },
+    sdk::api::{PartyShareCounts, Protocol},
+};
 use tracing::info;
 
 use self::execute::execute_protocol;
@@ -55,39 +56,37 @@ struct CeygenCli {
 #[derive(Debug, Args)]
 struct SignCli {
     /// Directory where keys are stored
-    #[clap(short = 'd', long = "key_directory")]
+    #[clap(short = 'd', long = "directory")]
     dir: String,
-    /// Keys to use for signing; Eg if signing with keys 0,1,3,5, but not 2 and 4, input [0,1,3,5]
-    #[clap(short = 'k', long = "key_array")]
-    keys: Vec<u8>,
-    /// 32 byte array to sign
+    /// Parties to use for signing; Eg if signing with parties 0,1,3, use -p 0 -p 1 -p 3
+    #[clap(short = 'p', long = "parties", required = true)]
+    parties: Vec<usize>,
+    /// 32 byte array to sign, default to [42;32]
     #[clap(short = 'm', long = "msg_digest")]
-    msg_digest: Vec<u8>,
+    msg_digest: Option<String>,
 }
 
 pub fn main() -> Result<()> {
     let args = Cli::parse();
-    match &args.command {
+    match args.command {
         Commands::Ceygen(cli) => ceygen(cli),
         Commands::Sign(cli) => sign(cli),
     }
 }
 
 /// Use `alice_key` to generate `threshold` of `parties` shares, write to directory `dir`.
-fn ceygen(cli: &CeygenCli) -> Result<()> {
+fn ceygen(cli: CeygenCli) -> Result<()> {
     let alice_key = match &cli.alice_key_byte_array {
-        Some(v) => SecretKey::from_bytes(v).unwrap(),
+        Some(v) => SecretKey::from_bytes(v).expect("bad key"),
         None => SecretKey::random(rand::thread_rng()),
     }
     .as_scalar_bytes()
     .to_scalar();
-    let party_share_counts = PartyShareCounts::from_vec(vec![1; cli.parties]).unwrap();
+    let party_share_counts =
+        PartyShareCounts::from_vec(vec![1; cli.parties]).expect("bad party initialization");
 
-    let secret_key_shares = gg20::ceygen::initialize_honest_parties(
-        &party_share_counts,
-        cli.threshold,
-        alice_key,
-    );
+    let secret_key_shares =
+        gg20::ceygen::initialize_honest_parties(&party_share_counts, cli.threshold, alice_key);
 
     let output_dir = if let Some(output_dir) = cli.dir.as_ref() {
         output_dir.clone()
@@ -108,7 +107,7 @@ fn ceygen(cli: &CeygenCli) -> Result<()> {
     let path = Path::new(&output_dir);
     fs::create_dir(path)?;
 
-    for (index, share) in secret_key_shares.iter().enumerate() {
+    for (index, share) in secret_key_shares.into_iter() {
         fs::write(
             Path::new(&(format!("{}/{}", output_dir, index))),
             serde_json::to_string(&share).unwrap(),
@@ -127,25 +126,31 @@ fn ceygen(cli: &CeygenCli) -> Result<()> {
 }
 
 /// Read keys `key_array` from `dir` and sign message `msg_digest`.
-fn sign(cli: &SignCli) -> Result<()> {
-	// read data from keygen directory
-    let party_share_counts: PartyShareCounts<KeygenPartyId> = serde_json::from_str(&fs::read_to_string(Path::new(&format!(
-        "{}/{}",
-        cli.dir, PARTY_SHARE_COUNTS_FILE
-    )))?).unwrap();
-	let secret_key_shares: VecMap<KeygenShareId, SecretKeyShare> = cli.keys.iter().map(|index|{
-		serde_json::from_str(&fs::read_to_string(Path::new(&format!(
+fn sign(cli: SignCli) -> Result<()> {
+    // read data from keygen directory
+    let party_share_counts: PartyShareCounts<KeygenPartyId> =
+        serde_json::from_str(&fs::read_to_string(Path::new(&format!(
             "{}/{}",
-            cli.dir, index
-        ))).unwrap())
-        .unwrap()
-	}
-	).collect();
+            cli.dir, PARTY_SHARE_COUNTS_FILE
+        )))?)
+        .unwrap();
 
-	// sign
+    let secret_key_shares: VecMap<KeygenShareId, SecretKeyShare> = cli
+        .parties
+        .iter()
+        .map(|index| {
+            serde_json::from_str(&fs::read_to_string(Path::new(&format!(
+                "{}/{}",
+                cli.dir, index
+            ))).expect("bummer file read"))
+            .expect("bummer keyshare")
+        })
+        .collect();
+
+    // sign
     let sign_parties = {
         let mut sign_parties = SignParties::with_max_size(party_share_counts.party_count());
-        for i in &cli.keys {
+        for i in &cli.parties {
             sign_parties
                 .add(TypedUsize::from_usize(*i as usize))
                 .unwrap();
@@ -156,7 +161,11 @@ fn sign(cli: &SignCli) -> Result<()> {
     let keygen_share_ids = VecMap::<SignShareId, _>::from_vec(
         party_share_counts.share_id_subset(&sign_parties).unwrap(),
     );
-    let msg_to_sign = MessageDigest::try_from(&*cli.msg_digest).unwrap();
+    let msg_digest = match cli.msg_digest.as_ref() {
+        Some(s) => s.as_bytes(),
+        None => &[42; 32],
+    };
+    let msg_to_sign = MessageDigest::try_from(&*msg_digest).unwrap();
     let sign_shares = keygen_share_ids.map(|keygen_share_id| {
         let secret_key_share = secret_key_shares.get(keygen_share_id).unwrap();
         new_sign(
@@ -195,13 +204,14 @@ fn sign(cli: &SignCli) -> Result<()> {
 
     info!(
         "message: {:?} successfully signed by parties: {:?}",
-        msg_to_sign, cli.keys
+        msg_to_sign, cli.parties
     );
     Ok(())
 }
 
 mod execute {
     //! Single-threaded generic protocol execution
+    // copy pasted from tests/single_thread/execute.rs
 
     use tofn::{
         collections::{HoleVecMap, TypedUsize, VecMap},
