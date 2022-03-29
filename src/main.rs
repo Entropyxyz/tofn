@@ -1,9 +1,9 @@
-use crate::{
+use tofn::{
     collections::{TypedUsize, VecMap},
     crypto_tools::message_digest::MessageDigest,
     gg20::{
         keygen::{KeygenPartyId, KeygenShareId, SecretKeyShare},
-        sign::{new_sign, SignParties, SignShareId},
+        sign::{new_sign, SignParties, SignShareId}, self,
     },
     sdk::api::{PartyShareCounts, Protocol},
 };
@@ -83,7 +83,7 @@ fn ceygen(cli: &CeygenCli) -> Result<()> {
     .to_scalar();
     let party_share_counts = PartyShareCounts::from_vec(vec![1; cli.parties]).unwrap();
 
-    let secret_key_shares = crate::gg20::ceygen::initialize_honest_parties(
+    let secret_key_shares = gg20::ceygen::initialize_honest_parties(
         &party_share_counts,
         cli.threshold,
         alice_key,
@@ -203,7 +203,7 @@ fn sign(cli: &SignCli) -> Result<()> {
 mod execute {
     //! Single-threaded generic protocol execution
 
-    use crate::{
+    use tofn::{
         collections::{HoleVecMap, TypedUsize, VecMap},
         sdk::api::{BytesVec, Protocol, TofnResult},
     };
