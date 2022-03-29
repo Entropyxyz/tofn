@@ -113,7 +113,7 @@ fn _basic_correctness() {
 fn basic_ceygen_correctness() {
     set_up_logs();
 
-    let party_share_counts = PartyShareCounts::from_vec(vec![1, 1, 1, 1]).unwrap(); // 10 total shares
+    let party_share_counts = PartyShareCounts::from_vec(vec![1, 1, 1, 1]).unwrap(); 
     // note: Number of shares used must exceed threshold by 1.
     let threshold = 3;
     debug!(

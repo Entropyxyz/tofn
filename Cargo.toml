@@ -18,8 +18,9 @@ zeroize = { version = "1.4", features = ["zeroize_derive"] }
 clap = { version = "3.1.6", features = ["derive"] }
 
 # k256 baggage
+elliptic-curve = {version = "0.11.12", features = ["arithmetic"]}
 k256 = { version = "0.9", features = ["ecdsa", "zeroize"], default-features = false }
-ecdsa = { version = "0.12", features = ["digest"], default-features = false } # needed only for FromDigest trait
+ecdsa = { version = "0.12", features = ["digest", "arithmetic"], default-features = false } # needed only for FromDigest trait
 rand = "0.8"
 sha2 = { version = "0.9", features = ["std", "asm"], default-features = false }
 sha3 = { version = "0.9", default-features = false }
@@ -28,6 +29,8 @@ sha3 = { version = "0.9", default-features = false }
 tracing = {version = "0.1", default-features = false}
 
 libpaillier = { git = "https://github.com/axelarnetwork/paillier-rs", features = ["gmp"], default-features = false }
+chrono = "0.4.19"
+serde_json = "1.0.79"
 
 [dev-dependencies]
 tracing-test = "0" # enable logging for tests
