@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use crate::common;
-use ecdsa::{elliptic_curve::sec1::FromEncodedPoint };
+use ecdsa::{elliptic_curve::sec1::FromEncodedPoint, hazmat::VerifyPrimitive };
 use execute::*;
 use tofn::{
     collections::{TypedUsize, VecMap},
@@ -104,7 +104,7 @@ fn _basic_correctness() {
     let sig = k256::ecdsa::Signature::from_der(signatures.get(TypedUsize::from_usize(0)).unwrap())
         .unwrap();
     assert!(pubkey
-        .verify_prehashed(&k256::Scalar::from(&msg_to_sign), &sig)
+        .verify_prehashed(k256::Scalar::from(&msg_to_sign), &sig)
         .is_ok());
 }
 /// A simple test to illustrate use of the library
@@ -124,7 +124,7 @@ fn basic_ceygen_correctness() {
 
     debug!("ceygen...");
     // Create some random key for Alice
-    let alice_key = k256::SecretKey::random(rand::thread_rng()).as_scalar_bytes().to_scalar();
+    let alice_key = *k256::SecretKey::random(rand::thread_rng()).to_nonzero_scalar();
 
     // generate the parties, with centralized key generation
     let secret_key_shares =
@@ -177,7 +177,7 @@ fn basic_ceygen_correctness() {
     let sig = k256::ecdsa::Signature::from_der(signatures.get(TypedUsize::from_usize(0)).unwrap())
         .unwrap();
     assert!(pubkey
-        .verify_prehashed(&k256::Scalar::from(&msg_to_sign), &sig)
+        .verify_prehashed(k256::Scalar::from(&msg_to_sign), &sig)
         .is_ok());
 }
 
