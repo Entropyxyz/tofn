@@ -19,8 +19,8 @@ clap = { version = "3.1.6", features = ["derive"] }
 
 # k256 baggage
 elliptic-curve = {version = "0.11.12", features = ["arithmetic"]}
-k256 = { version = "0.9", features = ["ecdsa", "zeroize"], default-features = false }
-ecdsa = { version = "0.12", features = ["digest", "arithmetic"], default-features = false } # needed only for FromDigest trait
+k256 = { version = "0.10.4", features = ["ecdsa", "ecdsa-core", "serde"]}
+ecdsa = { version = "0.13.4", features = ["digest", "arithmetic", "hazmat"]} # needed only for FromDigest trait
 rand = "0.8"
 sha2 = { version = "0.9", features = ["std", "asm"], default-features = false }
 sha3 = { version = "0.9", default-features = false }

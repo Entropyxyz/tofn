@@ -1,27 +1,23 @@
 //! Helpers for secret sharing
 use crate::crypto_tools::k256_serde;
-use ecdsa::elliptic_curve::Field;
+use elliptic_curve::Field;
 use serde::{Deserialize, Serialize};
 // use tracing::error;
 use zeroize::Zeroize;
 
-pub type Coefficient = k256::Scalar;
-pub type Coefficients = Vec<Coefficient>;
-
-// todo: move this somewhere sensible
 #[derive(Debug, Zeroize)]
 #[zeroize(drop)]
 pub struct Ss {
-    secret_coeffs: Coefficients,
+    secret_coeffs: Vec<k256::Scalar>,
 }
 impl Ss {
     /// Recall that a t-of-n sharing requires t+1 points of a degree t polynomial to recover the secret.
     /// Therefore, select t-1 random coefficients, for a total of t coefficients after including Alice's key.
-    pub fn new_byok(threshold: usize, alice_key: Coefficient) -> Self {
-        let secret_coeffs: Coefficients = vec![alice_key]
+    pub fn new_byok(threshold: usize, alice_key: k256::Scalar) -> Self {
+        let secret_coeffs: Vec<k256::Scalar> = vec![alice_key]
             .into_iter()
             .chain(
-                std::iter::repeat_with(|| Coefficient::random(rand::thread_rng()))
+                std::iter::repeat_with(|| k256::Scalar::random(rand::thread_rng()))
                     .take(threshold - 1),
             )
             .collect();
@@ -41,7 +37,7 @@ impl Ss {
     }
 
     #[allow(dead_code)]
-    pub fn get_secret(&self) -> &Coefficient {
+    pub fn get_secret(&self) -> &k256::Scalar{
         &self.secret_coeffs[0]
     }
 
@@ -50,14 +46,14 @@ impl Ss {
 
         (0..n)
             .map(|index| {
-                let index_scalar = Coefficient::from(index as u32 + 1); // ss indices start at 1
+                let index_scalar = k256::Scalar::from(index as u32 + 1); // ss indices start at 1
                 Share {
                     // evaluate the polynomial at i using Horner's method
                     scalar: self
                         .secret_coeffs
                         .iter()
                         .rev()
-                        .fold(Coefficient::zero(), |acc, coeff| acc * index_scalar + coeff)
+                        .fold(k256::Scalar::zero(), |acc, coeff| acc * index_scalar + coeff)
                         .into(),
                     index,
                 }
@@ -74,14 +70,14 @@ pub struct Share {
 }
 
 impl Share {
-    pub fn from_scalar(scalar: Coefficient, index: usize) -> Self {
+    pub fn from_scalar(scalar: k256::Scalar, index: usize) -> Self {
         Self {
             scalar: scalar.into(),
             index,
         }
     }
 
-    pub fn get_scalar(&self) -> &Coefficient {
+    pub fn get_scalar(&self) -> &k256::Scalar {
         self.scalar.as_ref()
     }
 
