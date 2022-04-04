@@ -44,7 +44,7 @@ fn _basic_correctness() {
     let sign_parties = {
         let mut sign_parties = SignParties::with_max_size(party_share_counts.party_count());
         sign_parties.add(TypedUsize::from_usize(0)).unwrap();
-        // sign_parties.add(TypedUsize::from_usize(1)).unwrap();
+        sign_parties.add(TypedUsize::from_usize(1)).unwrap();
         sign_parties.add(TypedUsize::from_usize(3)).unwrap();
         sign_parties
     };
