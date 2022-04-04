@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use crate::common;
-use ecdsa::{elliptic_curve::sec1::FromEncodedPoint, hazmat::VerifyPrimitive };
+use ecdsa::{elliptic_curve::sec1::FromEncodedPoint, hazmat::VerifyPrimitive};
 use execute::*;
 use tofn::{
     collections::{TypedUsize, VecMap},
@@ -55,8 +55,7 @@ fn _basic_correctness() {
     );
 
     debug!("keygen...");
-    let keygen_shares =
-        common::initialize_honest_parties(&party_share_counts, threshold);
+    let keygen_shares = common::initialize_honest_parties(&party_share_counts, threshold);
     let keygen_share_outputs = execute_protocol(keygen_shares).expect("internal tofn error");
     let secret_key_shares: VecMap<keygen::KeygenShareId, keygen::SecretKeyShare> =
         keygen_share_outputs.map2(|(keygen_share_id, keygen_share)| match keygen_share {
@@ -113,7 +112,7 @@ fn _basic_correctness() {
 fn basic_ceygen_correctness() {
     set_up_logs();
 
-    let party_share_counts = PartyShareCounts::from_vec(vec![1, 1, 1, 1]).unwrap(); 
+    let party_share_counts = PartyShareCounts::from_vec(vec![1, 1, 1, 1]).unwrap();
     // note: Number of shares used must exceed threshold by 1.
     let threshold = 3;
     debug!(
