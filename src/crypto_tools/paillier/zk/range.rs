@@ -14,7 +14,7 @@ use crate::{
     gg20::sign::SignShareId,
     sdk::api::{TofnFatal, TofnResult},
 };
-use elliptic_curve::ops::Reduce;
+use ecdsa::elliptic_curve::ops::Reduce;
 use libpaillier::unknown_order::BigNumber;
 use serde::{Deserialize, Serialize};
 use sha2::{
@@ -127,7 +127,7 @@ impl ZkSetup {
                 .chain(msg_g_g.map_or([0; 33], |(_, g)| k256_serde::point_to_bytes(g)))
                 .chain(z.to_bytes())
                 .chain(u.0.to_bytes())
-                .chain(u1.map_or([0; 33], |u1| k256_serde::point_to_bytes(u1)))
+                .chain(u1.map_or([0; 33], k256_serde::point_to_bytes))
                 .chain(w.to_bytes())
                 .finalize_fixed(),
         );

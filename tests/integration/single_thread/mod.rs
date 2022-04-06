@@ -32,10 +32,11 @@ fn set_up_logs() {
         // .with_current_span(false)
         .try_init();
 }
+
 /// A simple test to illustrate use of the library
 #[test]
-// #[traced_test]
-fn _basic_correctness() {
+#[tracing_test::traced_test]
+fn basic_correctness() {
     set_up_logs();
 
     // keygen
@@ -55,7 +56,7 @@ fn _basic_correctness() {
     );
 
     debug!("keygen...");
-    let keygen_shares = common::initialize_honest_parties(&party_share_counts, threshold);
+    let keygen_shares = common::keygen::initialize_honest_parties(&party_share_counts, threshold);
     let keygen_share_outputs = execute_protocol(keygen_shares).expect("internal tofn error");
     let secret_key_shares: VecMap<keygen::KeygenShareId, keygen::SecretKeyShare> =
         keygen_share_outputs.map2(|(keygen_share_id, keygen_share)| match keygen_share {
@@ -106,9 +107,10 @@ fn _basic_correctness() {
         .verify_prehashed(k256::Scalar::from(&msg_to_sign), &sig)
         .is_ok());
 }
+
 /// A simple test to illustrate use of the library
 #[test]
-// #[traced_test]
+#[tracing_test::traced_test]
 fn basic_ceygen_correctness() {
     set_up_logs();
 

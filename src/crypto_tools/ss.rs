@@ -1,6 +1,6 @@
 //! Helpers for secret sharing
 use crate::crypto_tools::k256_serde;
-use elliptic_curve::Field;
+use ecdsa::elliptic_curve::Field;
 use serde::{Deserialize, Serialize};
 // use tracing::error;
 use zeroize::Zeroize;

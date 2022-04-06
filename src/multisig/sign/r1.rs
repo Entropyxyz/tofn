@@ -8,8 +8,7 @@ use crate::{
         implementer_api::{serialize, RoundBuilder},
     },
 };
-use ecdsa::hazmat::SignPrimitive;
-use elliptic_curve::Field;
+use ecdsa::{hazmat::SignPrimitive, elliptic_curve::Field};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,7 +34,7 @@ pub(super) fn start(
     let ephemeral_scalar = k256::Scalar::random(rng);
 
     let signature = signing_key
-        .try_sign_prehashed(ephemeral_scalar.clone(), msg_to_sign.clone())
+        .try_sign_prehashed(ephemeral_scalar, msg_to_sign)
         .map_err(|_| TofnFatal)?;
 
     let bcast_out = Some(serialize(&Bcast {

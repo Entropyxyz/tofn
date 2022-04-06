@@ -5,8 +5,9 @@
 //! [Implementing Serialize · Serde](https://serde.rs/impl-serialize.html)
 //! [Implementing Deserialize · Serde](https://serde.rs/impl-deserialize.html)
 
-use ecdsa::elliptic_curve::{consts::U33, generic_array::GenericArray};
-use elliptic_curve::{group::GroupEncoding, ops::Reduce, Field};
+use ecdsa::elliptic_curve::{
+    consts::U33, generic_array::GenericArray, group::GroupEncoding, ops::Reduce, Field,
+};
 use k256::elliptic_curve::sec1::{FromEncodedPoint, ToEncodedPoint};
 use rand::{CryptoRng, RngCore};
 use serde::{de, de::Error, de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
@@ -305,7 +306,7 @@ mod tests {
         let hashed_msg = k256::Scalar::random(rand::thread_rng());
         let ephemeral_scalar = k256::Scalar::random(rand::thread_rng());
         let signature = s
-            .try_sign_prehashed(ephemeral_scalar, hashed_msg.clone())
+            .try_sign_prehashed(ephemeral_scalar, hashed_msg)
             .unwrap();
         p.to_affine()
             .verify_prehashed(hashed_msg, &signature.0)

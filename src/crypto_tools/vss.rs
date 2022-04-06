@@ -71,6 +71,11 @@ pub struct Commit {
 }
 
 impl Commit {
+
+    pub fn is_empty(&self) -> bool{
+        self.coeff_commits.is_empty()
+    }
+
     pub fn len(&self) -> usize {
         self.coeff_commits.len()
     }

@@ -93,7 +93,7 @@ pub fn new_sign(
 #[cfg(test)]
 mod tests {
     use ecdsa::hazmat::{SignPrimitive, VerifyPrimitive};
-    use elliptic_curve::Field;
+    use ecdsa::elliptic_curve::Field;
 
     #[test]
     fn sign_verify() {
