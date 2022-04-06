@@ -1,23 +1,25 @@
-use super::r1;
 use crate::{
-    collections::TypedUsize,
+    collections::{TypedUsize, VecMap},
     crypto_tools::{
-        paillier::{
-            self,
-            zk::{EncryptionKeyProof, ZkSetup, ZkSetupProof},
-            DecryptionKey, EncryptionKey,
-        },
+        k256_serde::{self, ProjectivePoint, Scalar},
+        paillier::{self, zk::ZkSetup},
         rng,
+        ss::{Share, Ss},
     },
-    gg20::constants::{KEYPAIR_TAG, ZKSETUP_TAG},
-    sdk::{
-        api::{PartyShareCounts, Protocol, TofnFatal, TofnResult},
-        implementer_api::{new_protocol, ProtocolBuilder},
+    gg20::{
+        constants::{KEYPAIR_TAG, ZKSETUP_TAG},
+        keygen::{
+            secret_key_share::{GroupPublicInfo, SecretKeyShare, ShareSecretInfo},
+            SharePublicInfo,
+        },
     },
+    sdk::api::{PartyShareCounts, TofnFatal, TofnResult},
 };
-use serde::{Deserialize, Serialize};
+use std::{convert::TryInto, ops::Mul};
 use tracing::error;
-use zeroize::Zeroize;
+
+/// Pre-image of `SecretKeyShare` in ceygen.
+pub type CeygenShareInfo = (SharePublicInfo, ShareSecretInfo);
 
 #[cfg(feature = "malicious")]
 use super::malicious;
@@ -31,32 +33,73 @@ use super::malicious;
 /// See https://github.com/axelarnetwork/tofn/issues/171
 pub const MAX_MSG_LEN: usize = 5500;
 
-pub use super::secret_key_share::*;
+use crate::gg20::keygen::{
+    KeygenPartyId, KeygenPartyShareCounts, KeygenShareId, PartyKeyPair, PartyKeygenData,
+};
 pub use rng::SecretRecoveryKey;
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-pub struct KeygenShareId;
+pub fn initialize_honest_parties(
+    party_share_counts: &PartyShareCounts<KeygenPartyId>,
+    threshold: usize,
+    alice_key: k256::Scalar,
+) -> VecMap<KeygenShareId, SecretKeyShare> {
+    let session_nonce = b"foobar";
+    let shares = Ss::new_byok(threshold, alice_key).shares(party_share_counts.total_share_count());
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-pub struct KeygenPartyId;
+    let (v_public_info, v_secret_info): (Vec<SharePublicInfo>, Vec<ShareSecretInfo>) =
+        party_share_counts
+            .iter()
+            .zip(shares.into_iter())
+            .map(|((party_id, &party_share_count), share)| {
+                // each party use the same secret recovery key for all its subshares
+                let secret_recovery_key = super::dummy_secret_recovery_key(party_id);
+                let party_keygen_data = create_party_keypair_and_zksetup_unsafe(
+                    party_id,
+                    &secret_recovery_key,
+                    session_nonce,
+                )
+                .unwrap();
 
-pub type KeygenProtocol = Protocol<SecretKeyShare, KeygenShareId, KeygenPartyId, MAX_MSG_LEN>;
-pub type KeygenProtocolBuilder = ProtocolBuilder<SecretKeyShare, KeygenShareId>;
-pub type KeygenPartyShareCounts = PartyShareCounts<KeygenPartyId>;
+                (0..party_share_count).map(move |subshare_id| {
+                    new_ceygen(
+                        party_share_counts.clone(),
+                        threshold,
+                        party_id,
+                        subshare_id,
+                        share.clone(),
+                        &party_keygen_data,
+                        #[cfg(feature = "malicious")]
+                        Behaviour::Honest,
+                    )
+                    .expect("bad ceygen; need parties >= threshold+1")
+                })
+            })
+            .flatten()
+            .unzip();
 
-#[derive(Debug, Clone, Zeroize)]
-#[zeroize(drop)]
-pub struct PartyKeyPair {
-    pub(crate) ek: EncryptionKey,
-    pub(crate) dk: DecryptionKey,
+    let y = ProjectivePoint::GENERATOR.mul(Scalar::from(alice_key));
+
+    let group_public_info = GroupPublicInfo::new(
+        party_share_counts.clone(),
+        threshold,
+        y,
+        VecMap::from_vec(v_public_info.clone()),
+    );
+
+    v_secret_info
+        .into_iter()
+        .map(|share_secret_info| SecretKeyShare::new(group_public_info.clone(), share_secret_info))
+        .collect()
 }
 
-#[derive(Debug, Clone)]
-pub struct PartyKeygenData {
-    pub(crate) encryption_keypair: PartyKeyPair,
-    pub(crate) encryption_keypair_proof: EncryptionKeyProof,
-    pub(crate) zk_setup: ZkSetup,
-    pub(crate) zk_setup_proof: ZkSetupProof,
+/// return the all-zero array with the first bytes set to the bytes of `index`
+pub fn dummy_secret_recovery_key<K>(index: TypedUsize<K>) -> SecretRecoveryKey {
+    let index_bytes = index.as_usize().to_be_bytes();
+    let mut result = [0; 64];
+    for (i, &b) in index_bytes.iter().enumerate() {
+        result[i] = b;
+    }
+    result[..].try_into().unwrap()
 }
 
 // Since safe prime generation is expensive, a party is expected to generate
@@ -148,17 +191,16 @@ pub const MAX_PARTY_SHARE_COUNT: usize = MAX_TOTAL_SHARE_COUNT;
 // TODO: Use a better way to hide this from the API, while allowing it for integration tests
 // since #[cfg(tests)] only works for unit tests
 
-/// Initialize a new keygen protocol
 #[allow(clippy::too_many_arguments)]
-pub fn new_keygen(
+pub fn new_ceygen(
     party_share_counts: KeygenPartyShareCounts,
     threshold: usize,
     my_party_id: TypedUsize<KeygenPartyId>,
-    my_subshare_id: usize, // in 0..party_share_counts[my_party_id]
+    my_subshare_id: usize,
+    share: Share,
     party_keygen_data: &PartyKeygenData,
-    #[cfg(feature = "malicious")] behaviour: malicious::Behaviour,
-) -> TofnResult<KeygenProtocol> {
-    // validate args
+    #[cfg(feature = "malicious")] behavior: malicious::Behavior,
+) -> TofnResult<CeygenShareInfo> {
     if party_share_counts
         .iter()
         .any(|(_, &c)| c > MAX_PARTY_SHARE_COUNT)
@@ -170,7 +212,8 @@ pub fn new_keygen(
         return Err(TofnFatal);
     }
     let total_share_count: usize = party_share_counts.total_share_count();
-    let my_keygen_id = party_share_counts.party_to_share_id(my_party_id, my_subshare_id)?;
+    let my_keygen_id: TypedUsize<KeygenShareId> =
+        party_share_counts.party_to_share_id(my_party_id, my_subshare_id)?;
 
     #[allow(clippy::suspicious_operation_groupings)]
     if total_share_count <= threshold
@@ -178,20 +221,22 @@ pub fn new_keygen(
         || my_party_id.as_usize() >= party_share_counts.party_count()
     {
         error!(
-            "invalid (total_share_count, threshold, my_party_id, my_subshare_id, max_share_count): ({},{},{},{},{})",
+                "invalid (total_share_count, threshold, my_party_id, subshare_id, max_share_count): ({},{},{},{},{})",
             total_share_count, threshold, my_party_id, my_subshare_id, MAX_TOTAL_SHARE_COUNT
-        );
+            );
         return Err(TofnFatal);
     }
 
-    let round2 = r1::start(
+    let share_public_info: SharePublicInfo = SharePublicInfo::new(
+        k256_serde::ProjectivePoint::GENERATOR.mul(share.get_scalar().clone()),
+        party_keygen_data.encryption_keypair.ek.clone(),
+        party_keygen_data.zk_setup.clone(),
+    );
+    let share_secret_info = ShareSecretInfo::new(
         my_keygen_id,
-        threshold,
-        party_share_counts.clone(),
-        party_keygen_data,
-        #[cfg(feature = "malicious")]
-        behaviour,
-    )?;
+        party_keygen_data.encryption_keypair.dk.clone(),
+        k256_serde::Scalar::from(share.get_scalar().clone()),
+    );
 
-    new_protocol(party_share_counts, my_keygen_id, round2)
+    TofnResult::Ok((share_public_info, share_secret_info))
 }
