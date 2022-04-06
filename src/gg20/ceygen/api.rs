@@ -1,13 +1,10 @@
-use std::{convert::TryInto, ops::Mul};
 use crate::{
     collections::{TypedUsize, VecMap},
     crypto_tools::{
-        k256_serde::{ProjectivePoint, Scalar},
-        paillier::{
-            self,
-            zk::{ZkSetup},
-        },
+        k256_serde::{self, ProjectivePoint, Scalar},
+        paillier::{self, zk::ZkSetup},
         rng,
+        ss::{Share, Ss},
     },
     gg20::{
         constants::{KEYPAIR_TAG, ZKSETUP_TAG},
@@ -16,14 +13,10 @@ use crate::{
             SharePublicInfo,
         },
     },
-    sdk::{
-        api::{PartyShareCounts, TofnFatal, TofnResult},
-        
-    },
+    sdk::api::{PartyShareCounts, TofnFatal, TofnResult},
 };
-use serde::{Deserialize, Serialize};
+use std::{convert::TryInto, ops::Mul};
 use tracing::error;
-use zeroize::Zeroize;
 
 /// Pre-image of `SecretKeyShare` in ceygen.
 pub type CeygenShareInfo = (SharePublicInfo, ShareSecretInfo);
@@ -41,8 +34,7 @@ use super::malicious;
 pub const MAX_MSG_LEN: usize = 5500;
 
 use crate::gg20::keygen::{
-    KeygenPartyId, KeygenPartyShareCounts, KeygenShareId,
-    PartyKeyPair, PartyKeygenData,
+    KeygenPartyId, KeygenPartyShareCounts, KeygenShareId, PartyKeyPair, PartyKeygenData,
 };
 pub use rng::SecretRecoveryKey;
 
@@ -52,7 +44,7 @@ pub fn initialize_honest_parties(
     alice_key: k256::Scalar,
 ) -> VecMap<KeygenShareId, SecretKeyShare> {
     let session_nonce = b"foobar";
-    let shares = Ss::new_byok(threshold, alice_key).shares(party_share_counts.party_count());
+    let shares = Ss::new_byok(threshold, alice_key).shares(party_share_counts.total_share_count());
 
     let (v_public_info, v_secret_info): (Vec<SharePublicInfo>, Vec<ShareSecretInfo>) =
         party_share_counts
@@ -79,13 +71,13 @@ pub fn initialize_honest_parties(
                         #[cfg(feature = "malicious")]
                         Behaviour::Honest,
                     )
-                    .unwrap()
+                    .expect("bad ceygen; need parties >= threshold+1")
                 })
             })
             .flatten()
             .unzip();
 
-    let y = ProjectivePoint::generator().mul(Scalar::from(alice_key));
+    let y = ProjectivePoint::GENERATOR.mul(Scalar::from(alice_key));
 
     let group_public_info = GroupPublicInfo::new(
         party_share_counts.clone(),
@@ -236,92 +228,15 @@ pub fn new_ceygen(
     }
 
     let share_public_info: SharePublicInfo = SharePublicInfo::new(
-        k256_serde::ProjectivePoint::generator().mul(share.scalar.clone()),
+        k256_serde::ProjectivePoint::GENERATOR.mul(share.get_scalar().clone()),
         party_keygen_data.encryption_keypair.ek.clone(),
         party_keygen_data.zk_setup.clone(),
     );
     let share_secret_info = ShareSecretInfo::new(
         my_keygen_id,
         party_keygen_data.encryption_keypair.dk.clone(),
-        share.scalar.clone(),
+        k256_serde::Scalar::from(share.get_scalar().clone()),
     );
 
     TofnResult::Ok((share_public_info, share_secret_info))
-}
-
-pub type Coefficient = k256::Scalar;
-pub type Coefficients = Vec<Coefficient>;
-
-// todo: move this somewhere sensible
-#[derive(Debug, Zeroize)]
-#[zeroize(drop)]
-pub struct Ss {
-    secret_coeffs: Coefficients,
-}
-impl Ss {
-    pub fn new_byok(threshold: usize, alice_key: Coefficient) -> Self {
-        let secret_coeffs: Coefficients = vec![alice_key]
-            .into_iter()
-            .chain(
-                std::iter::repeat_with(|| {
-                    <Coefficient as ecdsa::elliptic_curve::Field>::random(rand::thread_rng())
-                })
-                .take(threshold),
-            )
-            .collect();
-        Self { secret_coeffs }
-    }
-
-    pub fn get_threshold(&self) -> usize {
-        self.secret_coeffs.len() - 1
-    }
-
-    pub fn get_secret(&self) -> &Coefficient {
-        &self.secret_coeffs[0]
-    }
-
-    pub fn shares(&self, n: usize) -> Vec<Share> {
-        debug_assert!(self.get_threshold() < n); // also ensures that n > 0
-
-        (0..n)
-            .map(|index| {
-                let index_scalar = Coefficient::from(index as u32 + 1); // vss indices start at 1
-                Share {
-                    // evaluate the polynomial at i using Horner's method
-                    scalar: self
-                        .secret_coeffs
-                        .iter()
-                        .rev()
-                        .fold(Coefficient::zero(), |acc, coeff| acc * index_scalar + coeff)
-                        .into(),
-                    index,
-                }
-            })
-            .collect()
-    }
-}
-
-use crate::crypto_tools::k256_serde;
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Zeroize)]
-#[zeroize(drop)]
-pub struct Share {
-    scalar: k256_serde::Scalar,
-    index: usize,
-}
-
-impl Share {
-    pub fn from_scalar(scalar: Coefficient, index: usize) -> Self {
-        Self {
-            scalar: scalar.into(),
-            index,
-        }
-    }
-
-    pub fn get_scalar(&self) -> &Coefficient {
-        self.scalar.as_ref()
-    }
-
-    pub fn get_index(&self) -> usize {
-        self.index
-    }
 }

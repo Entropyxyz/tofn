@@ -6,7 +6,7 @@ use execute::*;
 use tofn::{
     collections::{TypedUsize, VecMap},
     gg20::{
-        ceygen, keygen,
+        keygen,
         sign::{new_sign, MessageDigest, SignParties, SignShareId},
     },
     sdk::api::{PartyShareCounts, Protocol},
@@ -33,9 +33,9 @@ fn set_up_logs() {
         .try_init();
 }
 /// A simple test to illustrate use of the library
-// #[test]
+#[test]
 // #[traced_test]
-fn basic_correctness() {
+fn _basic_correctness() {
     set_up_logs();
 
     // keygen
@@ -55,8 +55,7 @@ fn basic_correctness() {
     );
 
     debug!("keygen...");
-    let keygen_shares =
-        common::initialize_honest_parties(&party_share_counts, threshold);
+    let keygen_shares = common::initialize_honest_parties(&party_share_counts, threshold);
     let keygen_share_outputs = execute_protocol(keygen_shares).expect("internal tofn error");
     let secret_key_shares: VecMap<keygen::KeygenShareId, keygen::SecretKeyShare> =
         keygen_share_outputs.map2(|(keygen_share_id, keygen_share)| match keygen_share {
@@ -104,7 +103,7 @@ fn basic_correctness() {
     let sig = k256::ecdsa::Signature::from_der(signatures.get(TypedUsize::from_usize(0)).unwrap())
         .unwrap();
     assert!(pubkey
-        .verify_prehashed(&k256::Scalar::from(&msg_to_sign), &sig)
+        .verify_prehashed(k256::Scalar::from(&msg_to_sign), &sig)
         .is_ok());
 }
 /// A simple test to illustrate use of the library
@@ -113,29 +112,30 @@ fn basic_correctness() {
 fn basic_ceygen_correctness() {
     set_up_logs();
 
-    // keygen
-    let party_share_counts = PartyShareCounts::from_vec(vec![1, 2, 3, 4]).unwrap(); // 10 total shares
-    let threshold = 5;
+    let party_share_counts = PartyShareCounts::from_vec(vec![1, 1, 1, 1]).unwrap();
+    // note: Number of shares used must exceed threshold by 1.
+    let threshold = 3;
     debug!(
-        "total_share_count {}, threshold {}",
+        "ceygen total_share_count {}, threshold {}",
         party_share_counts.total_share_count(),
         threshold,
     );
 
     debug!("ceygen...");
     // Create some random key for Alice
-    let alice_key = k256::SecretKey::random(rand::thread_rng()).as_scalar_bytes().to_scalar();
+    let alice_key = *k256::SecretKey::random(rand::thread_rng()).to_nonzero_scalar();
 
     // generate the parties, with centralized key generation
     let secret_key_shares =
         tofn::gg20::ceygen::initialize_honest_parties(&party_share_counts, threshold, alice_key);
 
     // sign
-    debug!("sign...");
+    debug!("ceygen sign...");
     let sign_parties = {
         let mut sign_parties = SignParties::with_max_size(party_share_counts.party_count());
         sign_parties.add(TypedUsize::from_usize(0)).unwrap();
         sign_parties.add(TypedUsize::from_usize(1)).unwrap();
+        sign_parties.add(TypedUsize::from_usize(2)).unwrap();
         sign_parties.add(TypedUsize::from_usize(3)).unwrap();
         sign_parties
     };
@@ -176,7 +176,7 @@ fn basic_ceygen_correctness() {
     let sig = k256::ecdsa::Signature::from_der(signatures.get(TypedUsize::from_usize(0)).unwrap())
         .unwrap();
     assert!(pubkey
-        .verify_prehashed(&k256::Scalar::from(&msg_to_sign), &sig)
+        .verify_prehashed(k256::Scalar::from(&msg_to_sign), &sig)
         .is_ok());
 }
 
