@@ -131,6 +131,8 @@ pub fn mta_response_with_proof_wc(
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Borrow;
+
     use super::{mta_response_with_proof_wc, verify_mta_response};
     use crate::{
         collections::TypedUsize,
@@ -155,7 +157,7 @@ mod tests {
         let b_id = TypedUsize::from_usize(1);
 
         // MtA step 1: party a
-        let (a_ciphertext, a_randomness) = a_ek.encrypt(&(&a).into());
+        let (a_ciphertext, a_randomness) = a_ek.encrypt(&a.borrow().into());
         let a_range_proof = b_zkp.range_proof(
             &range::Statement {
                 prover_id: a_id,

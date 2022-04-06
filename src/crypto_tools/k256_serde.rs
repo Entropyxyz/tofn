@@ -306,7 +306,7 @@ mod tests {
         let hashed_msg = k256::Scalar::random(rand::thread_rng());
         let ephemeral_scalar = k256::Scalar::random(rand::thread_rng());
         let signature = s
-            .try_sign_prehashed(ephemeral_scalar, hashed_msg.clone())
+            .try_sign_prehashed(ephemeral_scalar, hashed_msg)
             .unwrap();
         p.to_affine()
             .verify_prehashed(hashed_msg, &signature.0)

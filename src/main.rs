@@ -101,7 +101,7 @@ fn ceygen(cli: CeygenCli) -> Result<()> {
             now.minute(),
             now.second()
         );
-        format!("./{}_{}", CEYGEN_CLI_OUTPUT_DIRECTORY, timestamp).to_string()
+        format!("./{}_{}", CEYGEN_CLI_OUTPUT_DIRECTORY, timestamp)
     };
 
     let path = Path::new(&output_dir);
@@ -199,7 +199,7 @@ fn sign(cli: SignCli) -> Result<()> {
     let sig = k256::ecdsa::Signature::from_der(signatures.get(TypedUsize::from_usize(0)).unwrap())
         .unwrap();
     assert!(pubkey
-        .verify_prehashed(k256::Scalar::from(&msg_to_sign.clone()), &sig)
+        .verify_prehashed(k256::Scalar::from(&msg_to_sign), &sig)
         .is_ok());
 
     info!(
