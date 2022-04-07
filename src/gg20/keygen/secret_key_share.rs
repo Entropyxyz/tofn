@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use super::{KeygenPartyId, KeygenPartyShareCounts, KeygenShareId, PartyKeyPair};
 use crate::{
     collections::{TypedUsize, VecMap},
@@ -163,7 +165,7 @@ impl SecretKeyShare {
     pub fn recovery_info(&self) -> TofnResult<BytesVec> {
         let index = self.share.index;
         let share = self.group.all_shares.get(index)?;
-        let x_i_ciphertext = share.ek.encrypt(&(&self.share.x_i).into()).0;
+        let x_i_ciphertext = share.ek.encrypt(&self.share.x_i.borrow().into()).0;
 
         encode(&KeyShareRecoveryInfo { x_i_ciphertext })
     }
@@ -279,7 +281,7 @@ impl SecretKeyShare {
             share: ShareSecretInfo {
                 index: share_id,
                 dk,
-                x_i: x_i.into(),
+                x_i,
             },
         })
     }

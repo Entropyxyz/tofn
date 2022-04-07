@@ -71,11 +71,7 @@ pub fn prove(stmt: &Statement, wit: &Witness) -> Proof {
     // t = a + c sigma mod q
     let t = a.as_ref() + c * wit.scalar;
 
-    Proof {
-        alpha1,
-        alpha2,
-        t: t.into(),
-    }
+    Proof { alpha1, alpha2, t }
 }
 
 pub fn verify(stmt: &Statement, proof: &Proof) -> bool {
@@ -112,7 +108,7 @@ pub(crate) mod malicious {
 
     pub fn corrupt_proof(proof: &Proof) -> Proof {
         Proof {
-            t: (proof.t + k256::Scalar::ONE).into(),
+            t: (proof.t + k256::Scalar::ONE),
             ..proof.clone()
         }
     }

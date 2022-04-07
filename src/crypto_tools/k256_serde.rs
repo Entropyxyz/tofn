@@ -282,6 +282,7 @@ mod tests {
         let v = U::from(val);
         let v_serialized = bincode.serialize(&v).unwrap();
         if let Some(size) = size {
+            // tk note: failing: v_serialized.len() is 33, not 32 bytes
             assert_eq!(v_serialized.len(), size);
         }
         let v_deserialized = bincode.deserialize(&v_serialized).unwrap();
@@ -320,6 +321,7 @@ mod tests {
         bincode.deserialize::<S>(&modulus).unwrap_err();
 
         // test edge case: integer not too large
+        // tk note: failing. I lack the knowledge about bincode to solve this quickly.
         modulus[31] -= 1;
         bincode.deserialize::<S>(&modulus).unwrap();
     }

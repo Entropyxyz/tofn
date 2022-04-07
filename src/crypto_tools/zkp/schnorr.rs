@@ -52,10 +52,7 @@ pub fn prove(stmt: &Statement, wit: &Witness) -> Proof {
     let c = compute_challenge(stmt, &alpha);
     let t = a.as_ref() - &(c * wit.scalar);
 
-    Proof {
-        c: c.into(),
-        t: t.into(),
-    }
+    Proof { c, t }
 }
 
 pub fn verify(stmt: &Statement, proof: &Proof) -> bool {
@@ -64,7 +61,7 @@ pub fn verify(stmt: &Statement, proof: &Proof) -> bool {
     let alpha = stmt.base * &proof.t + stmt.target * &proof.c;
     let c_check = compute_challenge(stmt, &alpha);
 
-    if &c_check == &proof.c{
+    if c_check == proof.c {
         true
     } else {
         warn!("schnorr proof: verify failed");
@@ -80,7 +77,7 @@ pub(crate) mod malicious {
 
     pub fn corrupt_proof(proof: &Proof) -> Proof {
         Proof {
-            t: (proof.t + k256::Scalar::ONE).into(),
+            t: (proof.t + k256::Scalar::ONE),
             ..proof.clone()
         }
     }

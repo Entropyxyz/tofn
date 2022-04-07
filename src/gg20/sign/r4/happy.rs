@@ -166,9 +166,9 @@ impl Executer for R4Happy {
             let bcast_out = Some(serialize(&Bcast::SadType5(
                 bcast_happy,
                 BcastSadType5 {
-                    k_i: self.k_i.into(),
+                    k_i: self.k_i,
                     k_i_randomness: self.k_i_randomness.clone(),
-                    gamma_i: self.gamma_i.into(),
+                    gamma_i: self.gamma_i,
                 },
             ))?);
 

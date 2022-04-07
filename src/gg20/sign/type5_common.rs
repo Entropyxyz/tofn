@@ -1,10 +1,12 @@
+use std::borrow::Borrow;
+
 use k256::ProjectivePoint;
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 
 use crate::{
     collections::{zip2, FillVecMap, FullP2ps, TypedUsize, VecMap},
-    crypto_tools::{constants, hash,  mta, paillier},
+    crypto_tools::{constants, hash, mta, paillier},
     gg20::keygen::{KeygenShareId, SharePublicInfo},
     sdk::api::{
         Fault::{self, ProtocolFault},
@@ -97,8 +99,7 @@ pub fn type5_checks(
         let delta_i = peer_mta_plaintexts.iter().fold(
             bcast_type5.k_i * bcast_type5.gamma_i,
             |acc, (_, mta_plaintext)| {
-                acc + mta_plaintext.alpha_plaintext.to_scalar()
-                    + mta_plaintext.beta_secret.beta
+                acc + mta_plaintext.alpha_plaintext.to_scalar() + mta_plaintext.beta_secret.beta
             },
         );
 
@@ -112,10 +113,8 @@ pub fn type5_checks(
         }
 
         // k_i
-        let k_i_ciphertext = peer_ek.encrypt_with_randomness(
-            &(&bcast_type5.k_i).into(),
-            &bcast_type5.k_i_randomness,
-        );
+        let k_i_ciphertext = peer_ek
+            .encrypt_with_randomness(&bcast_type5.k_i.borrow().into(), &bcast_type5.k_i_randomness);
         if k_i_ciphertext != all_r1_bcasts.get(peer_sign_id)?.k_i_ciphertext {
             warn!(
                 "peer {} says: invalid k_i detected from peer {}",

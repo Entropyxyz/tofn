@@ -8,7 +8,7 @@ use crate::{
         implementer_api::{serialize, RoundBuilder},
     },
 };
-use ecdsa::{hazmat::SignPrimitive, elliptic_curve::Field};
+use ecdsa::{elliptic_curve::Field, hazmat::SignPrimitive};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

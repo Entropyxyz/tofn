@@ -165,8 +165,8 @@ fn prove_inner(
     (
         Proof {
             alpha: alpha.into(),
-            t: t.into(),
-            u: u.into(),
+            t,
+            u,
         },
         beta,
     )
@@ -217,7 +217,7 @@ pub mod malicious {
 
     pub fn corrupt_proof(proof: &Proof) -> Proof {
         Proof {
-            u: k256::Scalar::from(&proof.u + k256::Scalar::ONE),
+            u: (proof.u + k256::Scalar::ONE),
             ..proof.clone()
         }
     }

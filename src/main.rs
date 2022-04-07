@@ -1,6 +1,9 @@
 use chrono::{Datelike, Timelike, Utc};
 use clap::{Args, Parser, Result, Subcommand};
-use ecdsa::{elliptic_curve::{sec1::FromEncodedPoint, self}, hazmat::VerifyPrimitive};
+use ecdsa::{
+    elliptic_curve::{self, sec1::FromEncodedPoint},
+    hazmat::VerifyPrimitive,
+};
 use k256::{Secp256k1, SecretKey};
 use std::{convert::TryFrom, fs, path::Path};
 use tofn::{

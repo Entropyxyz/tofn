@@ -1,10 +1,8 @@
 use crate::{
     collections::TypedUsize,
-    crypto_tools::{
-        paillier::{
-            zk::{mta, ZkSetup},
-            Ciphertext, EncryptionKey, Plaintext, Randomness,
-        },
+    crypto_tools::paillier::{
+        zk::{mta, ZkSetup},
+        Ciphertext, EncryptionKey, Plaintext, Randomness,
     },
     gg20::sign::SignShareId,
     sdk::api::TofnResult,
@@ -51,7 +49,7 @@ pub fn mta_response_from_randomness(
         &a_ek.mul(a_ciphertext, &Plaintext::from_scalar(b)),
         &beta_prime_ciphertext,
     );
-    let beta = k256::Scalar::from(beta_prime.to_scalar().negate());
+    let beta = beta_prime.to_scalar().negate();
     (c_b, beta)
 }
 

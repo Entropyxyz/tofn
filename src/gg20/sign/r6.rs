@@ -232,9 +232,9 @@ impl Executer for R6 {
             corrupt!(k_i, self.corrupt_k_i(my_sign_id, k_i));
 
             let bcast_out = Some(serialize(&Bcast::SadType5(BcastSadType5 {
-                k_i: k_i.into(),
+                k_i,
                 k_i_randomness: self.k_i_randomness.clone(),
-                gamma_i: self.gamma_i.into(),
+                gamma_i: self.gamma_i,
             }))?);
 
             let p2ps_out = Some(mta_plaintexts.map2_result(|(_, mta_plaintext)| {

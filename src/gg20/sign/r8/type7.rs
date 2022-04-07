@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use crate::{
     collections::{zip2, FillVecMap, FullP2ps, P2ps, TypedUsize, VecMap},
     crypto_tools::{vss, zkp::chaum_pedersen},
@@ -135,8 +137,8 @@ impl Executer for R8Type7 {
             }
 
             // k_i
-            let k_i_ciphertext = peer_ek
-                .encrypt_with_randomness(&(&bcast.k_i).into(), &bcast.k_i_randomness);
+            let k_i_ciphertext =
+                peer_ek.encrypt_with_randomness(&bcast.k_i.borrow().into(), &bcast.k_i_randomness);
             if k_i_ciphertext != self.r1bcasts.get(peer_sign_id)?.k_i_ciphertext {
                 warn!(
                     "peer {} says: invalid k_i detected from peer {}",

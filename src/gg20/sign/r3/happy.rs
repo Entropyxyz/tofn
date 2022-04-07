@@ -282,7 +282,7 @@ impl Executer for R3Happy {
         corrupt!(T_i_proof, self.corrupt_T_i_proof(my_sign_id, T_i_proof));
 
         let bcast_out = Some(serialize(&BcastHappy {
-            delta_i: delta_i.into(),
+            delta_i,
             T_i: T_i.into(),
             T_i_proof,
         })?);

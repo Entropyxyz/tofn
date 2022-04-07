@@ -341,7 +341,7 @@ fn malicious_delta_inverse() {
     *r3_shares[0].bcast_out_mut() = Some(
         encode_message(
             serialize(&r3::BcastHappy {
-                delta_i: delta_i_sum_except_0.negate().into(),
+                delta_i: delta_i_sum_except_0.negate(),
                 ..share_0_bcast_out
             })
             .unwrap(),
