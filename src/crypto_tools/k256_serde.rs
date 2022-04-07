@@ -16,8 +16,6 @@ use rand::{CryptoRng, RngCore};
 use serde::{de, de::Error, de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
 use zeroize::Zeroize;
 
-use crate::sdk::api::BytesVec;
-
 /// A wrapper for a random scalar value that is zeroized on drop
 /// TODO why not just do this for Scalar below?
 #[derive(Debug, Serialize, Deserialize, PartialEq, Zeroize)]
@@ -50,35 +48,6 @@ impl AsMut<Scalar> for SecretScalar {
 impl From<Scalar> for SecretScalar {
     fn from(s: Scalar) -> Self {
         SecretScalar(s)
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Signature(k256::ecdsa::Signature);
-
-impl Signature {
-    /// Returns a ASN.1 DER-encoded ECDSA signature.
-    /// ASN.1 DER encodings have variable byte length so we can't return a `[u8]` array.
-    /// Must return a `BytesVec` instead of `&[u8]` to avoid returning a reference to temporary data.
-    pub fn to_bytes(&self) -> BytesVec {
-        self.0.to_der().as_bytes().to_vec()
-    }
-
-    /// Decode from a ASN.1 DER-encoded ECDSA signature.
-    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        Some(Self(k256::ecdsa::Signature::from_der(bytes).ok()?))
-    }
-}
-
-impl AsRef<k256::ecdsa::Signature> for Signature {
-    fn as_ref(&self) -> &k256::ecdsa::Signature {
-        &self.0
-    }
-}
-
-impl From<k256::ecdsa::Signature> for Signature {
-    fn from(s: k256::ecdsa::Signature) -> Self {
-        Signature(s)
     }
 }
 
@@ -229,7 +198,7 @@ mod tests {
     use super::*;
     use bincode::Options;
     use ecdsa::hazmat::{SignPrimitive, VerifyPrimitive};
-    use k256::{elliptic_curve::Field, Scalar};
+    use k256::{ecdsa::Signature, elliptic_curve::Field, Scalar};
     use serde::de::DeserializeOwned;
     use std::fmt::Debug;
 

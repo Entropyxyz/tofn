@@ -22,8 +22,7 @@ pub mod keygen {
         let session_nonce = b"foobar";
 
         party_share_counts
-            .iter()
-            .map(|(party_id, &party_share_count)| {
+            .iter().flat_map(|(party_id, &party_share_count)| {
                 // each party use the same secret recovery key for all its subshares
                 let secret_recovery_key = super::dummy_secret_recovery_key(party_id);
 
@@ -47,7 +46,6 @@ pub mod keygen {
                     .unwrap()
                 })
             })
-            .flatten()
             .collect()
     }
 }
