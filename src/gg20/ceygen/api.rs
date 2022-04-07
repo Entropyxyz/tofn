@@ -1,7 +1,7 @@
 use crate::{
     collections::{TypedUsize, VecMap},
     crypto_tools::{
-        k256_serde::{self, ProjectivePoint, Scalar},
+        k256_serde::{self, ProjectivePoint},
         paillier::{self, zk::ZkSetup},
         rng,
         ss::{Share, Ss},
@@ -76,7 +76,7 @@ pub fn initialize_honest_parties(
             })
             .unzip();
 
-    let y = ProjectivePoint::GENERATOR.mul(Scalar::from(alice_key));
+    let y = ProjectivePoint::GENERATOR.mul(k256::Scalar::from(alice_key));
 
     let group_public_info = GroupPublicInfo::new(
         party_share_counts.clone(),
@@ -234,7 +234,7 @@ pub fn new_ceygen(
     let share_secret_info = ShareSecretInfo::new(
         my_keygen_id,
         party_keygen_data.encryption_keypair.dk.clone(),
-        k256_serde::Scalar::from(*share.get_scalar()),
+        k256::Scalar::from(*share.get_scalar()),
     );
 
     TofnResult::Ok((share_public_info, share_secret_info))

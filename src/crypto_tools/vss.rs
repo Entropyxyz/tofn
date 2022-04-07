@@ -113,7 +113,7 @@ impl Commit {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Zeroize)]
 #[zeroize(drop)]
 pub struct Share {
-    scalar: k256_serde::Scalar,
+    scalar: k256::Scalar,
     index: usize,
 }
 
@@ -126,7 +126,7 @@ impl Share {
     }
 
     pub fn get_scalar(&self) -> &k256::Scalar {
-        self.scalar.as_ref()
+        &self.scalar
     }
 
     pub fn get_index(&self) -> usize {
@@ -205,7 +205,7 @@ pub(crate) fn recover_secret(shares: &[Share]) -> k256::Scalar {
         .iter()
         .enumerate()
         .fold(k256::Scalar::zero(), |sum, (i, share)| {
-            sum + share.scalar.as_ref() * &lagrange_coefficient(i, &indices).unwrap()
+            sum + share.scalar * &lagrange_coefficient(i, &indices).unwrap()
         })
 }
 

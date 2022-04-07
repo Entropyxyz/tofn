@@ -47,7 +47,7 @@ pub struct SharePublicInfo {
 pub struct ShareSecretInfo {
     index: TypedUsize<KeygenShareId>,
     dk: paillier::DecryptionKey,
-    x_i: k256_serde::Scalar,
+    x_i: k256::Scalar,
 }
 
 /// Subset of `SecretKeyShare` that goes on-chain.
@@ -137,12 +137,12 @@ impl ShareSecretInfo {
     pub(crate) fn new(
         index: TypedUsize<KeygenShareId>,
         dk: paillier::DecryptionKey,
-        x_i: k256_serde::Scalar,
+        x_i: k256::Scalar,
     ) -> Self {
         Self { index, dk, x_i }
     }
 
-    pub(crate) fn x_i(&self) -> &k256_serde::Scalar {
+    pub(crate) fn x_i(&self) -> &k256::Scalar {
         &self.x_i
     }
 
@@ -163,7 +163,7 @@ impl SecretKeyShare {
     pub fn recovery_info(&self) -> TofnResult<BytesVec> {
         let index = self.share.index;
         let share = self.group.all_shares.get(index)?;
-        let x_i_ciphertext = share.ek.encrypt(&self.share.x_i.as_ref().into()).0;
+        let x_i_ciphertext = share.ek.encrypt(&(&self.share.x_i).into()).0;
 
         encode(&KeyShareRecoveryInfo { x_i_ciphertext })
     }

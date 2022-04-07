@@ -1,5 +1,4 @@
 //! Helpers for secret sharing
-use crate::crypto_tools::k256_serde;
 use ecdsa::elliptic_curve::Field;
 use serde::{Deserialize, Serialize};
 // use tracing::error;
@@ -67,7 +66,7 @@ impl Ss {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Zeroize)]
 #[zeroize(drop)]
 pub struct Share {
-    scalar: k256_serde::Scalar,
+    scalar: k256::Scalar,
     index: usize,
 }
 
@@ -80,7 +79,7 @@ impl Share {
     }
 
     pub fn get_scalar(&self) -> &k256::Scalar {
-        self.scalar.as_ref()
+        &self.scalar
     }
 
     pub fn get_index(&self) -> usize {

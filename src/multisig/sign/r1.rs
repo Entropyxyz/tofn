@@ -23,7 +23,7 @@ pub(super) fn start(
     all_keygen_ids: KeygenShareIds,
 ) -> TofnResult<SignProtocolBuilder> {
     let msg_to_sign = k256::Scalar::from(msg_to_sign);
-    let signing_key = secret_key_share.share().signing_key().as_ref();
+    let signing_key = secret_key_share.share().signing_key();
 
     let rng = rng::rng_seed_ecdsa_ephemeral_scalar_with_party_id(
         multisig::SIGN_TAG,

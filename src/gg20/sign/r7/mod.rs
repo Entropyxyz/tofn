@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::crypto_tools::{k256_serde, paillier, zkp::chaum_pedersen};
+use crate::crypto_tools::{paillier, zkp::chaum_pedersen};
 
 mod happy;
 pub(super) use happy::R7Happy;
@@ -20,12 +20,12 @@ pub enum Bcast {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 pub struct BcastHappy {
-    pub s_i: k256_serde::Scalar,
+    pub s_i: k256::Scalar,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BcastSadType7 {
-    pub(super) k_i: k256_serde::Scalar,
+    pub(super) k_i: k256::Scalar,
     pub(super) k_i_randomness: paillier::Randomness,
     pub(super) proof: chaum_pedersen::Proof,
 }

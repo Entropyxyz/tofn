@@ -234,7 +234,7 @@ fn execute_keygen_from_recovery(
 
     let all_vss_shares: Vec<vss::Share> = all_secret_key_shares
         .iter()
-        .map(|(id, k)| vss::Share::from_scalar(*k.share().x_i().as_ref(), id.as_usize()))
+        .map(|(id, k)| vss::Share::from_scalar(*k.share().x_i(), id.as_usize()))
         .collect();
     let secret_key_recovered = vss::recover_secret(&all_vss_shares);
 
@@ -262,7 +262,7 @@ fn execute_keygen_from_recovery(
                     .unwrap()
                     .X_i()
                     .as_ref(),
-                k256::ProjectivePoint::GENERATOR * other_secret_key_share.share().x_i().as_ref(),
+                k256::ProjectivePoint::GENERATOR * other_secret_key_share.share().x_i(),
                 "party {} got party {} key wrong",
                 i,
                 j

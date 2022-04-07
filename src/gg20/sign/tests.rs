@@ -190,7 +190,7 @@ fn execute_sign(
                     .payload,
             )
             .unwrap();
-            *r3_bcast.delta_i.as_ref()
+            r3_bcast.delta_i
         })
         .fold(k256::Scalar::ZERO, |acc, delta_i| acc + delta_i);
 
@@ -327,7 +327,7 @@ fn malicious_delta_inverse() {
                     .payload,
             )
             .unwrap();
-            *r3_bcast.delta_i.as_ref()
+            r3_bcast.delta_i
         })
         .fold(k256::Scalar::ZERO, |acc, delta_i| acc + delta_i);
 
@@ -363,7 +363,7 @@ fn malicious_delta_inverse() {
                         .payload,
                 )
                 .unwrap();
-                *r3_bcast.delta_i.as_ref()
+                r3_bcast.delta_i
             })
             .fold(k256::Scalar::ZERO, |acc, delta_i| acc + delta_i),
         k256::Scalar::ZERO

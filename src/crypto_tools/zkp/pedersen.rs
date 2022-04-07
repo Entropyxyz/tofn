@@ -31,8 +31,8 @@ pub struct Witness<'a> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Proof {
     alpha: k256_serde::ProjectivePoint,
-    t: k256_serde::Scalar,
-    u: k256_serde::Scalar,
+    t: k256::Scalar,
+    u: k256::Scalar,
 }
 
 #[derive(Clone, Debug)]
@@ -192,7 +192,7 @@ fn verify_inner(
 
     // R^t ?= alpha S^c
     if let Some((msg_g, g, beta)) = msg_g_g_beta {
-        let lhs = g * proof.t.as_ref();
+        let lhs = g * &proof.t;
         let rhs = msg_g * &c + beta;
         if lhs != rhs {
             warn!("pedersen proof: 'wc' check failed");
@@ -201,7 +201,7 @@ fn verify_inner(
     }
 
     // g^t h^u ?= beta T^c
-    let lhs = commit_with_randomness(proof.t.as_ref(), proof.u.as_ref());
+    let lhs = commit_with_randomness(&proof.t, &proof.u);
     let rhs = stmt.commit * &c + proof.alpha.as_ref();
     if lhs != rhs {
         warn!("pedersen proof: verify failed");
@@ -217,7 +217,7 @@ pub mod malicious {
 
     pub fn corrupt_proof(proof: &Proof) -> Proof {
         Proof {
-            u: k256_serde::Scalar::from(proof.u.as_ref() + k256::Scalar::ONE),
+            u: k256::Scalar::from(&proof.u + k256::Scalar::ONE),
             ..proof.clone()
         }
     }
