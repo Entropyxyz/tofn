@@ -113,8 +113,10 @@ pub fn type5_checks(
         }
 
         // k_i
-        let k_i_ciphertext = peer_ek
-            .encrypt_with_randomness(&bcast_type5.k_i.borrow().into(), &bcast_type5.k_i_randomness);
+        let k_i_ciphertext = peer_ek.encrypt_with_randomness(
+            &bcast_type5.k_i.borrow().into(),
+            &bcast_type5.k_i_randomness,
+        );
         if k_i_ciphertext != all_r1_bcasts.get(peer_sign_id)?.k_i_ciphertext {
             warn!(
                 "peer {} says: invalid k_i detected from peer {}",

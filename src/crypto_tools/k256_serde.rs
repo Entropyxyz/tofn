@@ -53,7 +53,7 @@ impl From<Scalar> for SecretScalar {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Signature(k256::ecdsa::Signature);
 
 impl Signature {
@@ -79,25 +79,6 @@ impl AsRef<k256::ecdsa::Signature> for Signature {
 impl From<k256::ecdsa::Signature> for Signature {
     fn from(s: k256::ecdsa::Signature) -> Self {
         Signature(s)
-    }
-}
-
-impl Serialize for Signature {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.to_bytes().serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for Signature {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        Signature::from_bytes(Deserialize::deserialize(deserializer)?)
-            .ok_or_else(|| D::Error::custom("signature DER decoding failure"))
     }
 }
 
