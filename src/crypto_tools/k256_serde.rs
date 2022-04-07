@@ -6,14 +6,15 @@
 //! [Implementing Deserialize · Serde](https://serde.rs/impl-deserialize.html)
 
 use ecdsa::elliptic_curve::{
-    consts::U33, generic_array::GenericArray, group::GroupEncoding, ops::Reduce, Field,
+    consts::U33, generic_array::GenericArray, group::GroupEncoding, Field,
 };
-use k256::elliptic_curve::sec1::{FromEncodedPoint, ToEncodedPoint};
+use k256::{
+    elliptic_curve::sec1::{FromEncodedPoint, ToEncodedPoint},
+    Scalar,
+};
 use rand::{CryptoRng, RngCore};
 use serde::{de, de::Error, de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
 use zeroize::Zeroize;
-
-use crate::sdk::api::BytesVec;
 
 /// A wrapper for a random scalar value that is zeroized on drop
 /// TODO why not just do this for Scalar below?
@@ -21,118 +22,32 @@ use crate::sdk::api::BytesVec;
 #[zeroize(drop)]
 pub struct SecretScalar(Scalar);
 
-impl AsRef<k256::Scalar> for SecretScalar {
-    fn as_ref(&self) -> &k256::Scalar {
-        &self.0 .0
+impl AsRef<Scalar> for SecretScalar {
+    fn as_ref(&self) -> &Scalar {
+        &self.0
     }
 }
 
 impl SecretScalar {
     pub fn random_with_thread_rng() -> Self {
-        Self(Scalar(k256::Scalar::random(rand::thread_rng())))
+        Self(Scalar::random(rand::thread_rng()))
     }
 
     pub fn random(rng: impl CryptoRng + RngCore) -> Self {
-        Self(Scalar(k256::Scalar::random(rng)))
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Zeroize)]
-pub struct Scalar(k256::Scalar);
-
-impl AsRef<k256::Scalar> for Scalar {
-    fn as_ref(&self) -> &k256::Scalar {
-        &self.0
+        Self(Scalar::random(rng))
     }
 }
 
 #[cfg(feature = "malicious")]
-impl AsMut<k256::Scalar> for Scalar {
-    fn as_mut(&mut self) -> &mut k256::Scalar {
+impl AsMut<Scalar> for SecretScalar {
+    fn as_mut(&mut self) -> &mut Scalar {
         &mut self.0
     }
 }
 
-impl From<k256::Scalar> for Scalar {
-    fn from(s: k256::Scalar) -> Self {
-        Scalar(s)
-    }
-}
-
-impl Serialize for Scalar {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let bytes: [u8; 32] = self.0.to_bytes().into();
-        bytes.serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for Scalar {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let bytes: [u8; 32] = Deserialize::deserialize(deserializer)?;
-        let field_bytes = k256::FieldBytes::from(bytes);
-        let scalar = <k256::Scalar as Reduce<k256::U256>>::from_be_bytes_reduced(field_bytes);
-
-        // ensure bytes encodes an integer less than the secp256k1 modulus
-        // if not then scalar.to_bytes() will differ from bytes
-        if field_bytes != scalar.to_bytes() {
-            return Err(D::Error::custom("integer exceeds secp256k1 modulus"));
-        }
-
-        Ok(Scalar(scalar))
-    }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct Signature(k256::ecdsa::Signature);
-
-impl Signature {
-    /// Returns a ASN.1 DER-encoded ECDSA signature.
-    /// ASN.1 DER encodings have variable byte length so we can't return a `[u8]` array.
-    /// Must return a `BytesVec` instead of `&[u8]` to avoid returning a reference to temporary data.
-    pub fn to_bytes(&self) -> BytesVec {
-        self.0.to_der().as_bytes().to_vec()
-    }
-
-    /// Decode from a ASN.1 DER-encoded ECDSA signature.
-    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        Some(Self(k256::ecdsa::Signature::from_der(bytes).ok()?))
-    }
-}
-
-impl AsRef<k256::ecdsa::Signature> for Signature {
-    fn as_ref(&self) -> &k256::ecdsa::Signature {
-        &self.0
-    }
-}
-
-impl From<k256::ecdsa::Signature> for Signature {
-    fn from(s: k256::ecdsa::Signature) -> Self {
-        Signature(s)
-    }
-}
-
-impl Serialize for Signature {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.to_bytes().serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for Signature {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        Signature::from_bytes(Deserialize::deserialize(deserializer)?)
-            .ok_or_else(|| D::Error::custom("signature DER decoding failure"))
+impl From<Scalar> for SecretScalar {
+    fn from(s: Scalar) -> Self {
+        SecretScalar(s)
     }
 }
 
@@ -195,28 +110,16 @@ impl ProjectivePoint {
                 .unwrap(),
         ))
     }
-
-    // wraps `k256::generator()`
-    pub fn generator() -> Self {
-        ProjectivePoint::from(k256::ProjectivePoint::GENERATOR)
-    }
-}
-
-impl std::ops::Mul<k256::Scalar> for ProjectivePoint {
-    type Output = Self;
-
-    fn mul(self, rhs: k256::Scalar) -> Self::Output {
-        Self(self.0.mul(rhs))
-    }
 }
 
 impl std::ops::Mul<Scalar> for ProjectivePoint {
     type Output = Self;
 
     fn mul(self, rhs: Scalar) -> Self::Output {
-        Self(self.0.mul(rhs.0))
+        Self(self.0.mul(rhs))
     }
 }
+
 
 impl AsRef<k256::ProjectivePoint> for ProjectivePoint {
     fn as_ref(&self) -> &k256::ProjectivePoint {
@@ -251,7 +154,7 @@ impl From<&k256::ProjectivePoint> for ProjectivePoint {
 
 impl From<&SecretScalar> for ProjectivePoint {
     fn from(s: &SecretScalar) -> Self {
-        ProjectivePoint(k256::ProjectivePoint::GENERATOR * s.0 .0)
+        ProjectivePoint(k256::ProjectivePoint::GENERATOR * s.0)
     }
 }
 
@@ -296,13 +199,13 @@ mod tests {
     use super::*;
     use bincode::Options;
     use ecdsa::hazmat::{SignPrimitive, VerifyPrimitive};
-    use k256::elliptic_curve::Field;
+    use k256::{ecdsa::Signature, elliptic_curve::Field, Scalar};
     use serde::de::DeserializeOwned;
     use std::fmt::Debug;
 
     #[test]
     fn basic_round_trip() {
-        let s = k256::Scalar::random(rand::thread_rng());
+        let s = Scalar::random(rand::thread_rng());
         basic_round_trip_impl::<_, Scalar>(s, Some(32));
 
         let p = k256::ProjectivePoint::GENERATOR * s;
@@ -330,6 +233,7 @@ mod tests {
         let v = U::from(val);
         let v_serialized = bincode.serialize(&v).unwrap();
         if let Some(size) = size {
+            // tk note: failing: v_serialized.len() is 33, not 32 bytes
             assert_eq!(v_serialized.len(), size);
         }
         let v_deserialized = bincode.deserialize(&v_serialized).unwrap();
@@ -338,7 +242,7 @@ mod tests {
 
     #[test]
     fn scalar_deserialization_fail() {
-        let s = Scalar(k256::Scalar::random(rand::thread_rng()));
+        let s = Scalar::random(rand::thread_rng());
         scalar_deserialization_fail_impl(s);
     }
 
@@ -368,6 +272,7 @@ mod tests {
         bincode.deserialize::<S>(&modulus).unwrap_err();
 
         // test edge case: integer not too large
+        // tk note: failing. I lack the knowledge about bincode to solve this quickly.
         modulus[31] -= 1;
         bincode.deserialize::<S>(&modulus).unwrap();
     }

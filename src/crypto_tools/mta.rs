@@ -1,11 +1,8 @@
 use crate::{
     collections::TypedUsize,
-    crypto_tools::{
-        k256_serde,
-        paillier::{
-            zk::{mta, ZkSetup},
-            Ciphertext, EncryptionKey, Plaintext, Randomness,
-        },
+    crypto_tools::paillier::{
+        zk::{mta, ZkSetup},
+        Ciphertext, EncryptionKey, Plaintext, Randomness,
     },
     gg20::sign::SignShareId,
     sdk::api::TofnResult,
@@ -16,7 +13,7 @@ use zeroize::Zeroize;
 #[derive(Debug, Clone, Serialize, Deserialize, Zeroize)]
 #[zeroize(drop)]
 pub struct Secret {
-    pub beta: k256_serde::Scalar,
+    pub beta: k256::Scalar,
     pub beta_prime: Plaintext,
     pub beta_prime_randomness: Randomness,
 }
@@ -46,13 +43,13 @@ pub fn mta_response_from_randomness(
     b: &k256::Scalar,
     beta_prime: &Plaintext,
     beta_prime_randomness: &Randomness,
-) -> (Ciphertext, k256_serde::Scalar) {
+) -> (Ciphertext, k256::Scalar) {
     let beta_prime_ciphertext = a_ek.encrypt_with_randomness(beta_prime, beta_prime_randomness);
     let c_b = a_ek.add(
         &a_ek.mul(a_ciphertext, &Plaintext::from_scalar(b)),
         &beta_prime_ciphertext,
     );
-    let beta = k256_serde::Scalar::from(beta_prime.to_scalar().negate());
+    let beta = beta_prime.to_scalar().negate();
     (c_b, beta)
 }
 
@@ -201,7 +198,7 @@ mod tests {
         let alpha = a_dk.decrypt_with_randomness(&c_b).0.to_scalar();
 
         // test: correct MtA output: a * b = alpha + beta
-        assert_eq!(a * b, alpha + b_secret.beta.as_ref());
+        assert_eq!(a * b, alpha + b_secret.beta);
 
         assert!(verify_mta_response(
             &a_ek,

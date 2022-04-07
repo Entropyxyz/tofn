@@ -64,7 +64,7 @@ impl Executer for R2 {
 
         Ok(ProtocolBuilder::Done(Ok(SecretKeyShare::new(
             GroupPublicInfo::new(self.party_share_counts, self.threshold, all_verifying_keys),
-            ShareSecretInfo::new(my_keygen_id, self.signing_key.into()),
+            ShareSecretInfo::new(my_keygen_id, self.signing_key),
         ))))
     }
 

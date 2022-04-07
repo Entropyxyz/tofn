@@ -27,8 +27,8 @@ pub struct Witness<'a> {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Proof {
-    c: k256_serde::Scalar,
-    t: k256_serde::Scalar,
+    c: k256::Scalar,
+    t: k256::Scalar,
 }
 
 /// Compute the challenge for Schnorr zk proof
@@ -52,19 +52,16 @@ pub fn prove(stmt: &Statement, wit: &Witness) -> Proof {
     let c = compute_challenge(stmt, &alpha);
     let t = a.as_ref() - &(c * wit.scalar);
 
-    Proof {
-        c: c.into(),
-        t: t.into(),
-    }
+    Proof { c, t }
 }
 
 pub fn verify(stmt: &Statement, proof: &Proof) -> bool {
     // Ensure that c and t are in Z_q and target is in G
     // This is handled by k256_serde on deserialize
-    let alpha = stmt.base * proof.t.as_ref() + stmt.target * proof.c.as_ref();
+    let alpha = stmt.base * &proof.t + stmt.target * &proof.c;
     let c_check = compute_challenge(stmt, &alpha);
 
-    if &c_check == proof.c.as_ref() {
+    if c_check == proof.c {
         true
     } else {
         warn!("schnorr proof: verify failed");
@@ -80,7 +77,7 @@ pub(crate) mod malicious {
 
     pub fn corrupt_proof(proof: &Proof) -> Proof {
         Proof {
-            t: (proof.t.as_ref() + k256::Scalar::ONE).into(),
+            t: (proof.t + k256::Scalar::ONE),
             ..proof.clone()
         }
     }

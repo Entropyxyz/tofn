@@ -1,6 +1,5 @@
 use crate::{
     collections::{FillVecMap, P2ps, VecMap},
-    crypto_tools::k256_serde,
     gg20::{keygen::SecretKeyShare, sign::r8::common::R8Path},
     sdk::{
         api::{BytesVec, Fault::ProtocolFault, TofnFatal, TofnResult},
@@ -30,7 +29,7 @@ pub(in super::super) struct R8Happy {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 pub(in super::super) struct Bcast {
-    pub(in super::super) s_i: k256_serde::Scalar,
+    pub(in super::super) s_i: k256::Scalar,
 }
 
 impl Executer for R8Happy {
@@ -82,7 +81,7 @@ impl Executer for R8Happy {
         // compute s = sum_i s_i
         let s = bcasts_in
             .iter()
-            .fold(Scalar::ZERO, |acc, (_, bcast)| acc + bcast.s_i.as_ref());
+            .fold(Scalar::ZERO, |acc, (_, bcast)| acc + bcast.s_i);
 
         let sig = {
             let sig = Signature::from_scalars(self.r, s).map_err(|_| {
@@ -106,7 +105,7 @@ impl Executer for R8Happy {
             let R_i = self.r5bcasts.get(peer_sign_id)?.R_i.as_ref();
             let S_i = self.r6bcasts.get(peer_sign_id)?.S_i.as_ref();
 
-            let R_s = self.R * bcast.s_i.as_ref();
+            let R_s = self.R * bcast.s_i;
             let R_s_prime = R_i * &self.msg_to_sign + S_i * &self.r;
 
             if R_s != R_s_prime {

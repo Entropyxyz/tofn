@@ -1,10 +1,12 @@
+use std::borrow::Borrow;
+
 use k256::ProjectivePoint;
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 
 use crate::{
     collections::{zip2, FillVecMap, FullP2ps, TypedUsize, VecMap},
-    crypto_tools::{constants, hash, k256_serde, mta, paillier},
+    crypto_tools::{constants, hash, mta, paillier},
     gg20::keygen::{KeygenShareId, SharePublicInfo},
     sdk::api::{
         Fault::{self, ProtocolFault},
@@ -16,9 +18,9 @@ use super::{r1, r2, r3, r4, SignShareId};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BcastSadType5 {
-    pub(super) k_i: k256_serde::Scalar,
+    pub(super) k_i: k256::Scalar,
     pub(super) k_i_randomness: paillier::Randomness,
-    pub(super) gamma_i: k256_serde::Scalar,
+    pub(super) gamma_i: k256::Scalar,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -95,14 +97,13 @@ pub fn type5_checks(
 
         // verify correct computation of delta_i
         let delta_i = peer_mta_plaintexts.iter().fold(
-            bcast_type5.k_i.as_ref() * bcast_type5.gamma_i.as_ref(),
+            bcast_type5.k_i * bcast_type5.gamma_i,
             |acc, (_, mta_plaintext)| {
-                acc + mta_plaintext.alpha_plaintext.to_scalar()
-                    + mta_plaintext.beta_secret.beta.as_ref()
+                acc + mta_plaintext.alpha_plaintext.to_scalar() + mta_plaintext.beta_secret.beta
             },
         );
 
-        if &delta_i != all_r3_bcasts.get(peer_sign_id)?.delta_i.as_ref() {
+        if delta_i != all_r3_bcasts.get(peer_sign_id)?.delta_i {
             warn!(
                 "peer {} says: delta_i for peer {} does not match",
                 my_sign_id, peer_sign_id
@@ -113,7 +114,7 @@ pub fn type5_checks(
 
         // k_i
         let k_i_ciphertext = peer_ek.encrypt_with_randomness(
-            &(bcast_type5.k_i.as_ref()).into(),
+            &bcast_type5.k_i.borrow().into(),
             &bcast_type5.k_i_randomness,
         );
         if k_i_ciphertext != all_r1_bcasts.get(peer_sign_id)?.k_i_ciphertext {
@@ -126,7 +127,7 @@ pub fn type5_checks(
         }
 
         // gamma_i
-        let Gamma_i = ProjectivePoint::GENERATOR * bcast_type5.gamma_i.as_ref();
+        let Gamma_i = ProjectivePoint::GENERATOR * bcast_type5.gamma_i;
         if &Gamma_i != bcast_happy.Gamma_i.as_ref() {
             warn!(
                 "peer {} says: inconsistent (gamma_i, Gamma_i) from peer {}",
@@ -169,7 +170,7 @@ pub fn type5_checks(
             if !mta::verify_mta_response(
                 receiver_ek,
                 receiver_k_i_ciphertext,
-                bcast_type5.gamma_i.as_ref(),
+                &bcast_type5.gamma_i,
                 receiver_alpha_ciphertext,
                 &peer_mta_plaintext.beta_secret,
             ) {
