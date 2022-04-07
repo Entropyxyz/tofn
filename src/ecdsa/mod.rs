@@ -1,17 +1,15 @@
-use std::convert::TryInto;
-
-use ecdsa::{
-    elliptic_curve::{sec1::ToEncodedPoint, Field},
-    hazmat::{SignPrimitive, VerifyPrimitive},
-};
-use message_digest::MessageDigest;
-use tracing::error;
-
 use crate::{
     constants::ECDSA_TAG,
     crypto_tools::{k256_serde, message_digest, rng},
     sdk::api::{BytesVec, TofnFatal, TofnResult},
 };
+use ecdsa::{
+    elliptic_curve::{sec1::ToEncodedPoint, Field},
+    hazmat::{SignPrimitive, VerifyPrimitive},
+};
+use message_digest::MessageDigest;
+use std::convert::TryInto;
+use tracing::error;
 
 #[derive(Debug)]
 pub struct KeyPair {
@@ -72,17 +70,15 @@ pub fn sign(
         rng::rng_seed_ecdsa_ephemeral_scalar(ECDSA_TAG, SIGN_TAG, signing_key, &message_digest)?;
     let ephemeral_scalar = k256::Scalar::random(rng);
 
-    let signature = k256_serde::Signature::from(
-        signing_key
-            .try_sign_prehashed(ephemeral_scalar, message_digest)
-            .map_err(|_| {
-                error!("failure to sign");
-                TofnFatal
-            })?
-            .0,
-    );
+    let signature = signing_key
+        .try_sign_prehashed(ephemeral_scalar, message_digest)
+        .map_err(|_| {
+            error!("failure to sign");
+            TofnFatal
+        })?
+        .0;
 
-    Ok(signature.to_bytes())
+    Ok(signature.to_vec())
 }
 
 pub fn verify(

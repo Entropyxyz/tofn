@@ -56,8 +56,7 @@ impl Vss {
                         .rev()
                         .fold(k256::Scalar::zero(), |acc, coeff| {
                             acc * index_scalar + coeff
-                        })
-                        .into(),
+                        }),
                     index,
                 }
             })
@@ -112,20 +111,17 @@ impl Commit {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Zeroize)]
 #[zeroize(drop)]
 pub struct Share {
-    scalar: k256_serde::Scalar,
+    scalar: k256::Scalar,
     index: usize,
 }
 
 impl Share {
     pub fn from_scalar(scalar: k256::Scalar, index: usize) -> Self {
-        Self {
-            scalar: scalar.into(),
-            index,
-        }
+        Self { scalar, index }
     }
 
     pub fn get_scalar(&self) -> &k256::Scalar {
-        self.scalar.as_ref()
+        &self.scalar
     }
 
     pub fn get_index(&self) -> usize {
@@ -204,7 +200,7 @@ pub(crate) fn recover_secret(shares: &[Share]) -> k256::Scalar {
         .iter()
         .enumerate()
         .fold(k256::Scalar::zero(), |sum, (i, share)| {
-            sum + share.scalar.as_ref() * &lagrange_coefficient(i, &indices).unwrap()
+            sum + share.scalar * lagrange_coefficient(i, &indices).unwrap()
         })
 }
 
@@ -230,15 +226,15 @@ mod tests {
         // index: 2, share: p(3) = 26
         let expected_shares = vec![
             Share {
-                scalar: k256::Scalar::from(6u32).into(),
+                scalar: k256::Scalar::from(6u32),
                 index: 0,
             },
             Share {
-                scalar: k256::Scalar::from(14u32).into(),
+                scalar: k256::Scalar::from(14u32),
                 index: 1,
             },
             Share {
-                scalar: k256::Scalar::from(26u32).into(),
+                scalar: k256::Scalar::from(26u32),
                 index: 2,
             },
         ];
@@ -299,7 +295,7 @@ mod tests {
             .iter()
             .enumerate()
             .map(|(i, share)| Share {
-                scalar: (share.get_scalar() * &lagrange_coefficient(i, &indices).unwrap()).into(),
+                scalar: (share.get_scalar() * &lagrange_coefficient(i, &indices).unwrap()),
                 ..*share
             })
             .collect();

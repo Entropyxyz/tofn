@@ -1,6 +1,8 @@
+use std::borrow::Borrow;
+
 use crate::{
     collections::{zip2, FillVecMap, FullP2ps, P2ps, TypedUsize, VecMap},
-    crypto_tools::{k256_serde, vss, zkp::chaum_pedersen},
+    crypto_tools::{vss, zkp::chaum_pedersen},
     gg20::{
         keygen::{KeygenShareId, SecretKeyShare},
         sign::{r2, r8::common::R8Path, KeygenShareIds},
@@ -34,7 +36,7 @@ pub(in super::super) struct R8Type7 {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 pub(in super::super) struct Bcast {
-    pub(in super::super) s_i: k256_serde::Scalar,
+    pub(in super::super) s_i: k256::Scalar,
 }
 
 impl Executer for R8Type7 {
@@ -135,8 +137,8 @@ impl Executer for R8Type7 {
             }
 
             // k_i
-            let k_i_ciphertext = peer_ek
-                .encrypt_with_randomness(&(bcast.k_i.as_ref()).into(), &bcast.k_i_randomness);
+            let k_i_ciphertext =
+                peer_ek.encrypt_with_randomness(&bcast.k_i.borrow().into(), &bcast.k_i_randomness);
             if k_i_ciphertext != self.r1bcasts.get(peer_sign_id)?.k_i_ciphertext {
                 warn!(
                     "peer {} says: invalid k_i detected from peer {}",
@@ -173,7 +175,7 @@ impl Executer for R8Type7 {
         // compute ecdsa nonce k = sum_i k_i
         let k = bcasts_in
             .iter()
-            .fold(Scalar::ZERO, |acc, (_, bcast)| acc + bcast.k_i.as_ref());
+            .fold(Scalar::ZERO, |acc, (_, bcast)| acc + bcast.k_i);
 
         // verify zkps as per page 19 of https://eprint.iacr.org/2020/540.pdf doc version 20200511:155431
         for (peer_sign_id, bcast, peer_p2ps) in zip2(&bcasts_in, &p2ps_in) {

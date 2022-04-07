@@ -1,3 +1,4 @@
+use super::{r1, KeygenShareIds, SignProtocolOutput, SignShareId, SignatureShare};
 use crate::{
     collections::{zip2, FillVecMap, P2ps},
     multisig::keygen::SecretKeyShare,
@@ -8,8 +9,6 @@ use crate::{
 };
 use ecdsa::hazmat::VerifyPrimitive;
 use tracing::{error, warn};
-
-use super::{r1, KeygenShareIds, SignProtocolOutput, SignShareId, SignatureShare};
 
 pub(super) struct R2 {
     pub(super) secret_key_share: SecretKeyShare,
@@ -69,7 +68,7 @@ impl Executer for R2 {
                 .to_affine();
 
             if verifying_key
-                .verify_prehashed(self.msg_to_sign, signature.as_ref())
+                .verify_prehashed(self.msg_to_sign, &signature)
                 .is_err()
             {
                 warn!(
@@ -88,7 +87,7 @@ impl Executer for R2 {
                 .share_to_party_subshare_ids(peer_keygen_id)?;
 
             valid_signatures.push(SignatureShare {
-                signature_bytes: signature.to_bytes(),
+                signature_bytes: signature.to_vec(),
                 party_id,
                 subshare_id,
             });

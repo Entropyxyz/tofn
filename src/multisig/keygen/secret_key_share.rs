@@ -38,7 +38,7 @@ pub struct GroupPublicInfo {
 #[zeroize(drop)]
 pub struct ShareSecretInfo {
     index: TypedUsize<KeygenShareId>,
-    signing_key: k256_serde::Scalar,
+    signing_key: k256::Scalar,
 }
 
 impl GroupPublicInfo {
@@ -94,11 +94,11 @@ impl ShareSecretInfo {
         self.index
     }
 
-    pub(super) fn new(index: TypedUsize<KeygenShareId>, signing_key: k256_serde::Scalar) -> Self {
+    pub(super) fn new(index: TypedUsize<KeygenShareId>, signing_key: k256::Scalar) -> Self {
         Self { index, signing_key }
     }
 
-    pub(crate) fn signing_key(&self) -> &k256_serde::Scalar {
+    pub(crate) fn signing_key(&self) -> &k256::Scalar {
         &self.signing_key
     }
 }

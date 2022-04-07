@@ -50,7 +50,7 @@ pub(in super::super) struct R3Happy {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 pub struct BcastHappy {
-    pub delta_i: k256_serde::Scalar,
+    pub delta_i: k256::Scalar,
     pub T_i: k256_serde::ProjectivePoint,
     pub T_i_proof: pedersen::Proof,
 }
@@ -248,7 +248,7 @@ impl Executer for R3Happy {
             .into_iter()
             .zip(self.beta_secrets.iter())
             .fold(self.k_i * self.gamma_i, |acc, ((_, alpha), (_, beta))| {
-                acc + alpha + beta.beta.as_ref()
+                acc + alpha + beta.beta
             });
 
         // many malicious behaviours require corrupt delta_i to prepare
@@ -262,7 +262,7 @@ impl Executer for R3Happy {
             .into_iter()
             .zip(self.nu_secrets.iter())
             .fold(self.k_i * self.w_i, |acc, ((_, mu), (_, nu))| {
-                acc + mu + nu.beta.as_ref()
+                acc + mu + nu.beta
             });
 
         corrupt!(sigma_i, self.corrupt_sigma(my_sign_id, sigma_i));
@@ -282,7 +282,7 @@ impl Executer for R3Happy {
         corrupt!(T_i_proof, self.corrupt_T_i_proof(my_sign_id, T_i_proof));
 
         let bcast_out = Some(serialize(&BcastHappy {
-            delta_i: delta_i.into(),
+            delta_i,
             T_i: T_i.into(),
             T_i_proof,
         })?);

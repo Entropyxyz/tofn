@@ -178,7 +178,7 @@ impl Executer for R7Happy {
             );
 
             let bcast_out = Some(serialize(&Bcast::SadType7(BcastSadType7 {
-                k_i: self.k_i.into(),
+                k_i: self.k_i,
                 k_i_randomness: self.k_i_randomness.clone(),
                 proof,
             }))?);
@@ -217,7 +217,7 @@ impl Executer for R7Happy {
 
         corrupt!(s_i, self.corrupt_s_i(my_sign_id, s_i));
 
-        let bcast_out = Some(serialize(&Bcast::Happy(BcastHappy { s_i: s_i.into() }))?);
+        let bcast_out = Some(serialize(&Bcast::Happy(BcastHappy { s_i }))?);
 
         Ok(ProtocolBuilder::NotDone(RoundBuilder::new(
             Box::new(r8::R8Happy {

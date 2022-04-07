@@ -50,7 +50,7 @@ pub(super) fn start(
             .collect::<Vec<_>>(),
     )?;
 
-    let w_i = secret_key_share.share().x_i().as_ref() * lambda_i_S;
+    let w_i = secret_key_share.share().x_i() * lambda_i_S;
 
     let k_i = k256::Scalar::random(rand::thread_rng());
     let gamma_i = k256::Scalar::random(rand::thread_rng());

@@ -1,7 +1,7 @@
 use super::{r2, KeygenShareIds, MessageDigest, SignProtocolBuilder, SignShareId};
 use crate::{
     collections::TypedUsize,
-    crypto_tools::{k256_serde, rng},
+    crypto_tools::rng,
     multisig::{self, keygen::SecretKeyShare},
     sdk::{
         api::{TofnFatal, TofnResult},
@@ -9,11 +9,12 @@ use crate::{
     },
 };
 use ecdsa::{elliptic_curve::Field, hazmat::SignPrimitive};
+use k256::ecdsa::Signature;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bcast {
-    pub(super) signature: k256_serde::Signature,
+    pub(super) signature: Signature,
 }
 
 pub(super) fn start(
@@ -23,7 +24,7 @@ pub(super) fn start(
     all_keygen_ids: KeygenShareIds,
 ) -> TofnResult<SignProtocolBuilder> {
     let msg_to_sign = k256::Scalar::from(msg_to_sign);
-    let signing_key = secret_key_share.share().signing_key().as_ref();
+    let signing_key = secret_key_share.share().signing_key();
 
     let rng = rng::rng_seed_ecdsa_ephemeral_scalar_with_party_id(
         multisig::SIGN_TAG,
@@ -38,7 +39,7 @@ pub(super) fn start(
         .map_err(|_| TofnFatal)?;
 
     let bcast_out = Some(serialize(&Bcast {
-        signature: signature.0.into(),
+        signature: signature.0,
     })?);
 
     Ok(SignProtocolBuilder::NotDone(RoundBuilder::new(

@@ -111,7 +111,7 @@ impl Executer for R4Happy {
                 self.y.into(),
                 all_shares,
             ),
-            ShareSecretInfo::new(my_keygen_id, self.dk, self.x_i.into()),
+            ShareSecretInfo::new(my_keygen_id, self.dk, self.x_i),
         ))))
     }
 

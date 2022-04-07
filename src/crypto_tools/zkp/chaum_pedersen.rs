@@ -31,7 +31,7 @@ pub struct Witness<'a> {
 pub struct Proof {
     alpha1: k256_serde::ProjectivePoint,
     alpha2: k256_serde::ProjectivePoint,
-    t: k256_serde::Scalar,
+    t: k256::Scalar,
 }
 
 fn compute_challenge(
@@ -71,11 +71,7 @@ pub fn prove(stmt: &Statement, wit: &Witness) -> Proof {
     // t = a + c sigma mod q
     let t = a.as_ref() + c * wit.scalar;
 
-    Proof {
-        alpha1,
-        alpha2,
-        t: t.into(),
-    }
+    Proof { alpha1, alpha2, t }
 }
 
 pub fn verify(stmt: &Statement, proof: &Proof) -> bool {
@@ -85,11 +81,11 @@ pub fn verify(stmt: &Statement, proof: &Proof) -> bool {
     let c = compute_challenge(stmt, &proof.alpha1, &proof.alpha2);
 
     // g^t ?= alpha Sigma^c
-    let lhs1 = stmt.base1 * proof.t.as_ref();
+    let lhs1 = stmt.base1 * &proof.t;
     let rhs1 = *proof.alpha1.as_ref() + stmt.target1 * &c;
 
     // R^t ?= beta S^c
-    let lhs2 = stmt.base2 * proof.t.as_ref();
+    let lhs2 = stmt.base2 * &proof.t;
     let rhs2 = *proof.alpha2.as_ref() + stmt.target2 * &c;
 
     let err = match (lhs1 == rhs1, lhs2 == rhs2) {
@@ -112,7 +108,7 @@ pub(crate) mod malicious {
 
     pub fn corrupt_proof(proof: &Proof) -> Proof {
         Proof {
-            t: (proof.t.as_ref() + k256::Scalar::ONE).into(),
+            t: (proof.t + k256::Scalar::ONE),
             ..proof.clone()
         }
     }
