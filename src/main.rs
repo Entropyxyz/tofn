@@ -1,3 +1,4 @@
+use bincode::Options;
 use chrono::{Datelike, Timelike, Utc};
 use clap::{Args, Parser, Result, Subcommand};
 use ecdsa::{
@@ -71,6 +72,9 @@ struct SignCli {
 
 pub fn main() -> Result<()> {
     let args = Cli::parse();
+    let _ = tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .try_init();
     match args.command {
         Commands::Ceygen(cli) => ceygen(cli),
         Commands::Sign(cli) => sign(cli),
@@ -111,18 +115,20 @@ fn ceygen(cli: CeygenCli) -> Result<()> {
     fs::create_dir(path)?;
 
     for (index, share) in secret_key_shares.into_iter() {
-        fs::write(
-            Path::new(&(format!("{}/{}", output_dir, index))),
-            serde_json::to_string(&share).unwrap(),
-        )?;
+        let bincode = bincode::DefaultOptions::new();
+        let contents = bincode.serialize(&share).unwrap();
+        fs::write(Path::new(&(format!("{}/{}", output_dir, index))), contents)?;
     }
+
+    let bincode = bincode::DefaultOptions::new();
+    let contents = bincode.serialize(&party_share_counts).unwrap();
     fs::write(
         Path::new(&format!("{}/{}", output_dir, PARTY_SHARE_COUNTS_FILE)),
-        serde_json::to_string(&party_share_counts).unwrap(),
+        contents,
     )?;
 
     info!(
-        "ceygen generated {}-of-{} keys.\nWrote to location: {}",
+        "ceygen generated {}-of-{} keys written to: {}",
         cli.threshold, cli.parties, output_dir
     );
     Ok(())
@@ -131,22 +137,23 @@ fn ceygen(cli: CeygenCli) -> Result<()> {
 /// Read keys `key_array` from `dir` and sign message `msg_digest`.
 fn sign(cli: SignCli) -> Result<()> {
     // read data from keygen directory
+
+    let bincode = bincode::DefaultOptions::new();
+    let v_serialized = fs::read(Path::new(&format!(
+        "{}/{}",
+        cli.dir, PARTY_SHARE_COUNTS_FILE
+    )))
+    .unwrap();
     let party_share_counts: PartyShareCounts<KeygenPartyId> =
-        serde_json::from_str(&fs::read_to_string(Path::new(&format!(
-            "{}/{}",
-            cli.dir, PARTY_SHARE_COUNTS_FILE
-        )))?)
-        .unwrap();
+        bincode.deserialize(&v_serialized).unwrap();
 
     let secret_key_shares: VecMap<KeygenShareId, SecretKeyShare> = cli
         .parties
         .iter()
         .map(|index| {
-            serde_json::from_str(
-                &fs::read_to_string(Path::new(&format!("{}/{}", cli.dir, index)))
-                    .expect("bummer file read"),
-            )
-            .expect("bummer keyshare")
+            let bincode = bincode::DefaultOptions::new();
+            let v_serialized = fs::read(Path::new(&format!("{}/{}", cli.dir, index))).unwrap();
+            bincode.deserialize(&v_serialized).unwrap()
         })
         .collect();
 
