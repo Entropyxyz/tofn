@@ -72,6 +72,9 @@ struct SignCli {
 
 pub fn main() -> Result<()> {
     let args = Cli::parse();
+    let _ = tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .try_init();
     match args.command {
         Commands::Ceygen(cli) => ceygen(cli),
         Commands::Sign(cli) => sign(cli),
@@ -125,7 +128,7 @@ fn ceygen(cli: CeygenCli) -> Result<()> {
     )?;
 
     info!(
-        "ceygen generated {}-of-{} keys.\nWrote to location: {}",
+        "ceygen generated {}-of-{} keys written to: {}",
         cli.threshold, cli.parties, output_dir
     );
     Ok(())
