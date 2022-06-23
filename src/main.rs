@@ -1,17 +1,13 @@
 use bincode::Options;
 use chrono::{Datelike, Timelike, Utc};
-use clap::{Args, Parser, Result, Subcommand};
-use ecdsa::{
-    elliptic_curve::{self, sec1::FromEncodedPoint},
-    hazmat::VerifyPrimitive,
-};
-use k256::{Secp256k1, SecretKey};
+use clap::{Args, Parser, Subcommand};
+use ecdsa::{elliptic_curve::sec1::FromEncodedPoint, hazmat::VerifyPrimitive};
+use rand::Rng;
 use std::{convert::TryFrom, fs, path::Path};
 use tofn::{
     collections::{TypedUsize, VecMap},
     crypto_tools::message_digest::MessageDigest,
     gg20::{
-        self,
         keygen::{KeygenPartyId, KeygenShareId, SecretKeyShare},
         sign::{new_sign, SignParties, SignShareId},
     },
@@ -70,7 +66,7 @@ struct SignCli {
     msg_digest: Option<String>,
 }
 
-pub fn main() -> Result<()> {
+pub fn main() -> anyhow::Result<()> {
     let args = Cli::parse();
     let _ = tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
@@ -82,22 +78,18 @@ pub fn main() -> Result<()> {
 }
 
 /// Use `alice_key` to generate `threshold` of `parties` shares, write to directory `dir`.
-fn ceygen(cli: CeygenCli) -> Result<()> {
-    let alice_key: elliptic_curve::NonZeroScalar<Secp256k1> = match &cli.alice_key_byte_array {
-        Some(v) => SecretKey::from_be_bytes(v).expect("bad key"),
-        None => SecretKey::random(rand::thread_rng()),
-    }
-    .to_nonzero_scalar();
-
-    let party_share_counts =
-        PartyShareCounts::from_vec(vec![1; cli.parties]).expect("bad party initialization");
-
-    let secret_key_shares =
-        gg20::ceygen::initialize_honest_parties(&party_share_counts, cli.threshold, *alice_key);
+fn ceygen(cli: CeygenCli) -> anyhow::Result<()> {
+    // generate a random key if none provided.
+    let alice_key: Vec<u8> = cli.alice_key_byte_array.unwrap_or_else(|| {
+        let mut rng = rand::thread_rng();
+        std::iter::repeat(rng.gen_range(0..=255)).take(32).collect()
+    });
+    let (psce, skse) = tofn::gg20::ceygen::ceygen(cli.parties, cli.threshold, alice_key)?;
 
     let output_dir = if let Some(output_dir) = cli.dir.as_ref() {
         output_dir.clone()
     } else {
+        // create a timestamped directory to store keyshares
         let now = Utc::now();
         let timestamp = format!(
             "{}{}{}:{}{}{}",
@@ -110,32 +102,30 @@ fn ceygen(cli: CeygenCli) -> Result<()> {
         );
         format!("./{}_{}", CEYGEN_CLI_OUTPUT_DIRECTORY, timestamp)
     };
-
     let path = Path::new(&output_dir);
     fs::create_dir(path)?;
 
-    for (index, share) in secret_key_shares.into_iter() {
-        let bincode = bincode::DefaultOptions::new();
-        let contents = bincode.serialize(&share).unwrap();
-        fs::write(Path::new(&(format!("{}/{}", output_dir, index))), contents)?;
-    }
-
-    let bincode = bincode::DefaultOptions::new();
-    let contents = bincode.serialize(&party_share_counts).unwrap();
+    // write secret key shares and party share counts to dir
+    skse.into_iter()
+        .enumerate()
+        .for_each(|(index, encoded_share)| {
+            fs::write(
+                Path::new(&(format!("{}/{}", output_dir, index))),
+                encoded_share,
+            )
+            .unwrap();
+        });
     fs::write(
         Path::new(&format!("{}/{}", output_dir, PARTY_SHARE_COUNTS_FILE)),
-        contents,
+        psce,
     )?;
 
-    info!(
-        "ceygen generated {}-of-{} keys written to: {}",
-        cli.threshold, cli.parties, output_dir
-    );
+    info!("ceygen keyshares written to: {}", output_dir);
     Ok(())
 }
 
 /// Read keys `key_array` from `dir` and sign message `msg_digest`.
-fn sign(cli: SignCli) -> Result<()> {
+fn sign(cli: SignCli) -> anyhow::Result<()> {
     // read data from keygen directory
 
     let bincode = bincode::DefaultOptions::new();

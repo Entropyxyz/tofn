@@ -1,3 +1,6 @@
+use crate::gg20::keygen::{
+    KeygenPartyId, KeygenPartyShareCounts, KeygenShareId, PartyKeyPair, PartyKeygenData,
+};
 use crate::{
     collections::{TypedUsize, VecMap},
     crypto_tools::{
@@ -7,6 +10,7 @@ use crate::{
         ss::{Share, Ss},
     },
     gg20::{
+        self,
         constants::{KEYPAIR_TAG, ZKSETUP_TAG},
         keygen::{
             secret_key_share::{GroupPublicInfo, SecretKeyShare, ShareSecretInfo},
@@ -15,14 +19,22 @@ use crate::{
     },
     sdk::api::{PartyShareCounts, TofnFatal, TofnResult},
 };
+use bincode::Options;
+pub use rng::SecretRecoveryKey;
 use std::{convert::TryInto, ops::Mul};
 use tracing::error;
+// use chrono::{Datelike, Timelike, Utc};
+use anyhow::Result;
+// use ecdsa::elliptic_curve::{self};
+use k256::{NonZeroScalar, SecretKey};
+// use std::{fs, path::Path};
+use tracing::info;
 
 /// Pre-image of `SecretKeyShare` in ceygen.
 pub type CeygenShareInfo = (SharePublicInfo, ShareSecretInfo);
 
-#[cfg(feature = "malicious")]
-use super::malicious;
+// #[cfg(feature = "malicious")]
+// use super::malicious;
 
 /// Maximum byte length of messages exchanged during keygen.
 /// The sender of a message larger than this maximum will be accused as a faulter.
@@ -33,12 +45,40 @@ use super::malicious;
 /// See https://github.com/axelarnetwork/tofn/issues/171
 pub const MAX_MSG_LEN: usize = 5500;
 
-use crate::gg20::keygen::{
-    KeygenPartyId, KeygenPartyShareCounts, KeygenShareId, PartyKeyPair, PartyKeygenData,
-};
-pub use rng::SecretRecoveryKey;
+/// The tuple of bincode-encoded PartyShareCounts, and bincode-encoded SecretKeyShares.
+pub type CeygenResult = Result<(Vec<u8>, Vec<Vec<u8>>)>;
 
-pub fn initialize_honest_parties(
+/// Validate the party parameters, then split Alice's key into an bincode-encoded byte-array of keyshares.
+pub fn ceygen(parties: usize, threshold: usize, alice_key_byte_array: Vec<u8>) -> CeygenResult {
+    let alice_key = validate_secret_key(alice_key_byte_array)?;
+    let party_share_counts =
+        PartyShareCounts::from_vec(vec![1; parties]).expect("invalid party count");
+    let secret_key_shares =
+        gg20::ceygen::initialize_honest_parties(&party_share_counts, threshold, *alice_key);
+
+    // encode keyshares
+    let secret_key_shares_encoded = secret_key_shares
+        .into_iter()
+        .map(|share| {
+            let bincode = bincode::DefaultOptions::new();
+            bincode.serialize(&share).unwrap()
+        })
+        .collect();
+
+    // encode party_share_counts
+    let bincode = bincode::DefaultOptions::new();
+    let party_share_counts_encoded = bincode.serialize(&party_share_counts)?;
+
+    info!("ceygen generated {}-of-{} keys", threshold, parties);
+    Ok((party_share_counts_encoded, secret_key_shares_encoded))
+}
+
+// validate alice_key and return a SecretKey if valid.
+fn validate_secret_key(alice_key_byte_array: Vec<u8>) -> Result<NonZeroScalar> {
+    Ok(SecretKey::from_be_bytes(&alice_key_byte_array)?.to_nonzero_scalar())
+}
+
+pub(crate) fn initialize_honest_parties(
     party_share_counts: &PartyShareCounts<KeygenPartyId>,
     threshold: usize,
     alice_key: k256::Scalar,
@@ -68,8 +108,8 @@ pub fn initialize_honest_parties(
                         subshare_id,
                         share.clone(),
                         &party_keygen_data,
-                        #[cfg(feature = "malicious")]
-                        Behaviour::Honest,
+                        // #[cfg(feature = "malicious")]
+                        // Behaviour::Honest,
                     )
                     .expect("bad ceygen; need parties >= threshold+1")
                 })
@@ -198,7 +238,7 @@ pub fn new_ceygen(
     my_subshare_id: usize,
     share: Share,
     party_keygen_data: &PartyKeygenData,
-    #[cfg(feature = "malicious")] behavior: malicious::Behavior,
+    // #[cfg(feature = "malicious")] behavior: malicious::Behavior,
 ) -> TofnResult<CeygenShareInfo> {
     if party_share_counts
         .iter()

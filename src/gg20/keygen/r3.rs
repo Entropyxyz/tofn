@@ -287,7 +287,7 @@ mod malicious {
         ) -> k256::Scalar {
             if let Behaviour::R3BadXIWitness = self.behaviour {
                 log_confess_info(keygen_id, &self.behaviour, "");
-                x_i += k256::Scalar::one();
+                x_i += k256::Scalar::ONE;
             }
             x_i
         }
