@@ -46,7 +46,7 @@ pub type CeygenShareInfo = (SharePublicInfo, ShareSecretInfo);
 pub const MAX_MSG_LEN: usize = 5500;
 
 /// The tuple of bincode-encoded PartyShareCounts, and bincode-encoded SecretKeyShares.
-pub type CeygenResult = Result<(Vec<u8>, Vec<Vec<u8>>)>;
+pub type CeygenResult = Result<(Vec<u8>, Vec<(TypedUsize<KeygenShareId>, Vec<u8>)>)>;
 
 /// Validate the party parameters, then split Alice's key into an bincode-encoded byte-array of keyshares.
 pub fn ceygen(parties: usize, threshold: usize, alice_key_byte_array: Vec<u8>) -> CeygenResult {
@@ -59,9 +59,9 @@ pub fn ceygen(parties: usize, threshold: usize, alice_key_byte_array: Vec<u8>) -
     // encode keyshares
     let secret_key_shares_encoded = secret_key_shares
         .into_iter()
-        .map(|share| {
+        .map(|(index, share)| {
             let bincode = bincode::DefaultOptions::new();
-            bincode.serialize(&share).unwrap()
+            (index, bincode.serialize(&share).unwrap())
         })
         .collect();
 

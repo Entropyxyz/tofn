@@ -107,7 +107,6 @@ fn ceygen(cli: CeygenCli) -> anyhow::Result<()> {
 
     // write secret key shares and party share counts to dir
     skse.into_iter()
-        .enumerate()
         .for_each(|(index, encoded_share)| {
             fs::write(
                 Path::new(&(format!("{}/{}", output_dir, index))),
