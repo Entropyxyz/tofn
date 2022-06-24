@@ -1,9 +1,12 @@
 use bincode::Options;
-use chrono::{Datelike, Timelike, Utc};
 use clap::{Args, Parser, Subcommand};
 use ecdsa::{elliptic_curve::sec1::FromEncodedPoint, hazmat::VerifyPrimitive};
 use rand::Rng;
-use std::{convert::TryFrom, fs, path::Path};
+use std::{
+    convert::TryFrom,
+    fs,
+    path::{Path, PathBuf},
+};
 use tofn::{
     collections::{TypedUsize, VecMap},
     crypto_tools::message_digest::MessageDigest,
@@ -17,7 +20,6 @@ use tracing::info;
 
 use self::execute::execute_protocol;
 
-pub(crate) const CEYGEN_CLI_OUTPUT_DIRECTORY: &str = "tofn_ceygen";
 pub(crate) const PARTY_SHARE_COUNTS_FILE: &str = "party_share_counts";
 
 /// CLI, mostly for debugging and local key generation
@@ -84,42 +86,8 @@ fn ceygen(cli: CeygenCli) -> anyhow::Result<()> {
         let mut rng = rand::thread_rng();
         std::iter::repeat(rng.gen_range(0..=255)).take(32).collect()
     });
-    let (psce, skse) = tofn::gg20::ceygen::ceygen(cli.parties, cli.threshold, alice_key)?;
-
-    let output_dir = if let Some(output_dir) = cli.dir.as_ref() {
-        output_dir.clone()
-    } else {
-        // create a timestamped directory to store keyshares
-        let now = Utc::now();
-        let timestamp = format!(
-            "{}{}{}:{}{}{}",
-            now.year(),
-            now.month(),
-            now.day(),
-            now.hour(),
-            now.minute(),
-            now.second()
-        );
-        format!("./{}_{}", CEYGEN_CLI_OUTPUT_DIRECTORY, timestamp)
-    };
-    let path = Path::new(&output_dir);
-    fs::create_dir(path)?;
-
-    // write secret key shares and party share counts to dir
-    skse.into_iter()
-        .for_each(|(index, encoded_share)| {
-            fs::write(
-                Path::new(&(format!("{}/{}", output_dir, index))),
-                encoded_share,
-            )
-            .unwrap();
-        });
-    fs::write(
-        Path::new(&format!("{}/{}", output_dir, PARTY_SHARE_COUNTS_FILE)),
-        psce,
-    )?;
-
-    info!("ceygen keyshares written to: {}", output_dir);
+    let ceygen = tofn::gg20::ceygen::ceygen(cli.parties, cli.threshold, alice_key)?;
+    tofn::gg20::ceygen::write_ceygen_results(ceygen, cli.dir.map(PathBuf::from))?;
     Ok(())
 }
 
