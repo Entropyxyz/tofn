@@ -93,12 +93,9 @@ pub(crate) fn initialize_honest_parties(
             .flat_map(|((party_id, &party_share_count), share)| {
                 // each party use the same secret recovery key for all its subshares
                 let secret_recovery_key = super::dummy_secret_recovery_key(party_id);
-                let party_keygen_data = create_party_keypair_and_zksetup_unsafe(
-                    party_id,
-                    &secret_recovery_key,
-                    session_nonce,
-                )
-                .unwrap();
+                let party_keygen_data =
+                    create_party_keypair_and_zksetup(party_id, &secret_recovery_key, session_nonce)
+                        .unwrap();
 
                 (0..party_share_count).map(move |subshare_id| {
                     new_ceygen(
