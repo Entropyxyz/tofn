@@ -1,3 +1,18 @@
+# Ceygen only (Entropy CLI instructions)
+```
+cargo build release
+# generate 2-of-2 keys. Note that threshold of 1 implies the need for 2 parties.
+# writes to tofn_ceygen_<timestamp>
+./target/release/tofn ceygen -p 2 -t 1 
+./target/release/tofn sign -p 0 -p 1 -d tofn_ceygen_* 
+```
+## Additional options
+### Ceygen
+- `-k` to bring your own private key, otherwise, one is randomly generated
+- `-o` to specify a different output directory
+### Sign
+- `-m` to specify your own message. Defaults to \[42;32\].
+
 # Tofn (t-of-n): a threshold cryptography library in Rust
 
 Tofn provides the following:
