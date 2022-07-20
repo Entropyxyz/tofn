@@ -129,8 +129,8 @@ fn sign(cli: SignCli) -> anyhow::Result<()> {
         party_share_counts.share_id_subset(&sign_parties).unwrap(),
     );
     let msg_digest = match cli.msg_digest.as_ref() {
-        Some(s) => s.as_bytes(),
-        None => &[42; 32],
+        Some(s) => hex::decode(s).expect("Decoding failed"),
+        None => vec![42; 32],
     };
     let msg_to_sign = MessageDigest::try_from(&*msg_digest).unwrap();
     let sign_shares = keygen_share_ids.map(|keygen_share_id| {
