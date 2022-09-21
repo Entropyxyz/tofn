@@ -78,7 +78,7 @@ pub fn sign(
         })?
         .0;
 
-    Ok(signature.to_vec())
+    Ok(signature.to_der().as_bytes().to_vec())
 }
 
 pub fn verify(
