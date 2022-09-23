@@ -120,7 +120,6 @@ impl std::ops::Mul<Scalar> for ProjectivePoint {
     }
 }
 
-
 impl AsRef<k256::ProjectivePoint> for ProjectivePoint {
     fn as_ref(&self) -> &k256::ProjectivePoint {
         &self.0
@@ -206,7 +205,7 @@ mod tests {
     #[test]
     fn basic_round_trip() {
         let s = Scalar::random(rand::thread_rng());
-        basic_round_trip_impl::<_, Scalar>(s, Some(32));
+        basic_round_trip_impl::<_, Scalar>(s, Some(33));
 
         let p = k256::ProjectivePoint::GENERATOR * s;
         basic_round_trip_impl::<_, ProjectivePoint>(p, None);
@@ -262,10 +261,12 @@ mod tests {
         too_many_bytes.push(42);
         bincode.deserialize::<S>(&too_many_bytes).unwrap_err();
 
-        let mut modulus: [u8; 32] = [
-            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-            0xff, 0xfe, 0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b, 0xbf, 0xd2, 0x5e, 0x8c,
-            0xd0, 0x36, 0x41, 0x41,
+        // As used by `serdect` serializer:
+        // array length (0x20) + 32 bytes of the serialized scalar.
+        let mut modulus: [u8; 33] = [
+            0x20, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xfe, 0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b, 0xbf, 0xd2, 0x5e,
+            0x8c, 0xd0, 0x36, 0x41, 0x41,
         ]; // secp256k1 modulus
 
         // test edge case: integer too large
@@ -273,7 +274,7 @@ mod tests {
 
         // test edge case: integer not too large
         // tk note: failing. I lack the knowledge about bincode to solve this quickly.
-        modulus[31] -= 1;
+        modulus[32] -= 1;
         bincode.deserialize::<S>(&modulus).unwrap();
     }
 }
