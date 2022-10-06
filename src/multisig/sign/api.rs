@@ -39,10 +39,10 @@ pub type Peers = HoleVecMap<SignShareId, TypedUsize<KeygenShareId>>;
 // This is the set of parties participating in the current signing protocol
 pub type SignParties = Subset<KeygenPartyId>;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SignShareId;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SignPartyId;
 
 /// Initialize a new sign protocol

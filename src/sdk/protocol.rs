@@ -14,7 +14,7 @@ pub enum Protocol<F, K, P, const MAX_MSG_IN_LEN: usize> {
 pub type ProtocolOutput<F, P> = Result<F, ProtocolFaulters<P>>;
 pub type ProtocolFaulters<P> = FillVecMap<P, Fault>; // party (not subhsare) faults
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Fault {
     MissingMessage,
     CorruptedMessage,

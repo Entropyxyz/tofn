@@ -155,7 +155,7 @@ mod malicious {
     ) -> k256::Scalar {
         if let Behaviour::R1BadGammaI = behaviour {
             log_confess_info(my_sign_id, behaviour, "");
-            gamma_i += k256::Scalar::one();
+            gamma_i += k256::Scalar::ONE;
         }
         gamma_i
     }

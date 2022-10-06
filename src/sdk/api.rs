@@ -8,7 +8,7 @@ pub use super::{
     round::Round,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct TofnFatal;
 
 // TODO make these into const generics wherever they're used

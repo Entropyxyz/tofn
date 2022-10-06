@@ -18,7 +18,7 @@ use zeroize::Zeroize;
 
 /// A wrapper for a random scalar value that is zeroized on drop
 /// TODO why not just do this for Scalar below?
-#[derive(Debug, Serialize, Deserialize, PartialEq, Zeroize)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Zeroize)]
 #[zeroize(drop)]
 pub struct SecretScalar(Scalar);
 
@@ -91,7 +91,7 @@ impl<'de> Visitor<'de> for EncodedPointVisitor {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ProjectivePoint(k256::ProjectivePoint);
 
 impl ProjectivePoint {

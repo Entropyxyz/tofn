@@ -1,3 +1,4 @@
+use super::super::{r1, r2, Peers, SignShareId};
 use crate::{
     collections::{FillVecMap, FullP2ps, HoleVecMap, P2ps, TypedUsize, VecMap},
     crypto_tools::{hash::Randomness, k256_serde, mta::Secret, paillier, vss, zkp::pedersen},
@@ -19,8 +20,6 @@ use crate::{
 use k256::{ProjectivePoint, Scalar};
 use serde::{Deserialize, Serialize};
 use tracing::warn;
-
-use super::super::{r1, r2, Peers, SignShareId};
 
 #[cfg(feature = "malicious")]
 use super::super::malicious::Behaviour;
@@ -373,7 +372,7 @@ mod malicious {
         ) -> k256::Scalar {
             if let R3BadDeltaI = self.behaviour {
                 log_confess_info(my_sign_id, &self.behaviour, "");
-                delta_i += k256::Scalar::one();
+                delta_i += k256::Scalar::ONE;
             }
             delta_i
         }
@@ -402,7 +401,7 @@ mod malicious {
         ) -> k256::Scalar {
             if let R3BadAlpha { victim: _ } = self.behaviour {
                 log_confess_info(my_sign_id, &self.behaviour, "step 1/2: delta_i");
-                delta_i += k256::Scalar::one();
+                delta_i += k256::Scalar::ONE;
             }
             delta_i
         }
@@ -416,7 +415,7 @@ mod malicious {
         ) -> k256::Scalar {
             if let R3BadBeta { victim: _ } = self.behaviour {
                 log_confess_info(my_sign_id, &self.behaviour, "step 1/2: delta_i");
-                delta_i += k256::Scalar::one();
+                delta_i += k256::Scalar::ONE;
             }
             delta_i
         }
@@ -428,7 +427,7 @@ mod malicious {
         ) -> Scalar {
             if let R3BadSigmaI = self.behaviour {
                 log_confess_info(my_sign_id, &self.behaviour, "");
-                sigma_i += Scalar::one();
+                sigma_i += Scalar::ONE;
             }
             sigma_i
         }

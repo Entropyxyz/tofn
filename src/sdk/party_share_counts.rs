@@ -5,7 +5,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(bound(serialize = "", deserialize = ""))] // disable serde trait bounds on `P`: https://serde.rs/attr-bound.html
 pub struct PartyShareCounts<P> {
     party_share_counts: VecMap<P, usize>,

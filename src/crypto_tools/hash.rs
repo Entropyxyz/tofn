@@ -7,7 +7,7 @@ use crate::collections::TypedUsize;
 
 // can't derive Serialize, Deserialize for sha3::digest::Output<Sha3_256>
 // so use [u8; 32] instead
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Output([u8; 32]);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Zeroize)]

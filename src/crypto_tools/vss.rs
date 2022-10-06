@@ -108,7 +108,7 @@ impl Commit {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Zeroize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Zeroize)]
 #[zeroize(drop)]
 pub struct Share {
     scalar: k256::Scalar,
@@ -129,7 +129,7 @@ impl Share {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ShareCommit {
     index: usize,
     point: k256_serde::ProjectivePoint,
