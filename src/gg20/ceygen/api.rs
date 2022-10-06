@@ -95,12 +95,11 @@ pub fn write_ceygen_results(ceygen: Ceygen, output_dir: Option<PathBuf>) -> Resu
 
     // write secret key shares and party share counts to dir
     let (psce, skse) = ceygen;
-    println!("{:?}", psce);
     let path_s = path.to_str().unwrap();
     skse.into_iter().for_each(|(index, encoded_share)| {
         std::fs::write(Path::new(&(format!("{}/{}", path_s, index))), encoded_share).unwrap();
     });
-    std::fs::write(Path::new(&format!("{}/party_share_counts", path_s)), psce).unwrap();
+    std::fs::write(Path::new(&format!("{}/party_share_counts", path_s)), psce)?;
 
     info!("ceygen keyshares written to: {}", path_s);
     Ok(())
