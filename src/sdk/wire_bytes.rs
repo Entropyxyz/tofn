@@ -128,7 +128,7 @@ pub enum MsgType<K> {
     TotalShareCount1P2pOnly, // special case: used only when total_share_count is 1
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub enum ExpectedMsgTypes {
     BcastAndP2p,
     BcastOnly,

@@ -7,7 +7,7 @@ use crate::sdk::api::{TofnFatal, TofnResult};
 
 use super::{vecmap_iter::VecMapIter, HoleVecMap, TypedUsize};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct VecMap<K, V>(Vec<V>, std::marker::PhantomData<TypedUsize<K>>);
 
 impl<K, V> Zeroize for VecMap<K, V>

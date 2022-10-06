@@ -1,15 +1,16 @@
 use bincode::Options;
 use clap::{Args, Parser, Subcommand};
 use ecdsa::{elliptic_curve::sec1::FromEncodedPoint, hazmat::VerifyPrimitive};
-use rand::Rng;
 use std::{
     convert::TryFrom,
     fs,
     path::{Path, PathBuf},
 };
+#[allow(unused_imports)]
 use tofn::{
     collections::{TypedUsize, VecMap},
     crypto_tools::message_digest::MessageDigest,
+    gg20,
     gg20::{
         keygen::{KeygenPartyId, KeygenShareId, SecretKeyShare},
         sign::{new_sign, SignParties, SignShareId},
@@ -17,6 +18,7 @@ use tofn::{
     sdk::api::{PartyShareCounts, Protocol},
 };
 use tracing::info;
+use zeroize::Zeroize;
 
 use self::execute::execute_protocol;
 
@@ -82,11 +84,12 @@ pub fn main() -> anyhow::Result<()> {
 /// Use `alice_key` to generate `threshold` of `parties` shares, write to directory `dir`.
 fn ceygen(cli: CeygenCli) -> anyhow::Result<()> {
     // generate a random key if none provided.
-    let alice_key: Vec<u8> = cli.alice_key_byte_array.unwrap_or_else(|| {
-        let mut rng = rand::thread_rng();
-        std::iter::repeat(rng.gen_range(0..=255)).take(32).collect()
-    });
-    let ceygen = tofn::gg20::ceygen::ceygen(cli.parties, cli.threshold, alice_key)?;
+    // https://docs.rs/rand/latest/rand/rngs/struct.OsRng.html
+    use rand_core::{OsRng, RngCore};
+    let mut key = [0u8; 32];
+    OsRng.fill_bytes(&mut key);
+    let ceygen = tofn::gg20::ceygen::ceygen(cli.parties, cli.threshold, &key)?;
+    key.zeroize();
     tofn::gg20::ceygen::write_ceygen_results(ceygen, cli.dir.map(PathBuf::from))?;
     Ok(())
 }
@@ -141,7 +144,7 @@ fn sign(cli: SignCli) -> anyhow::Result<()> {
             &sign_parties,
             &msg_to_sign,
             #[cfg(feature = "malicious")]
-            sign::malicious::Behaviour::Honest,
+            gg20::sign::malicious::Behaviour::Honest,
         )
         .unwrap()
     });

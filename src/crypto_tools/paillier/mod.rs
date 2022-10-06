@@ -115,7 +115,7 @@ impl DecryptionKey {
 }
 
 /// Wrapper for Paillier plaintext
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Zeroize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Zeroize)]
 #[zeroize(drop)]
 pub struct Plaintext(BigNumber);
 
@@ -149,11 +149,11 @@ impl From<&k256::Scalar> for Plaintext {
 }
 
 /// Wrapper for Paillier ciphertext
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Ciphertext(libpaillier::Ciphertext);
 
 /// Wrapper for randomness used in Paillier encryption
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Zeroize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Zeroize)]
 #[zeroize(drop)]
 pub struct Randomness(BigNumber);
 

@@ -38,7 +38,7 @@ use tracing::info;
 /// Pre-image of `SecretKeyShare` in ceygen.
 pub type CeygenShareInfo = (SharePublicInfo, ShareSecretInfo);
 
-// #[cfg(feature = "malicious")]
+#[cfg(feature = "malicious")]
 // use super::malicious;
 
 /// Maximum byte length of messages exchanged during keygen.
@@ -54,7 +54,7 @@ pub const MAX_MSG_LEN: usize = 5500;
 pub type Ceygen = (Vec<u8>, Vec<(TypedUsize<KeygenShareId>, Vec<u8>)>);
 
 /// Validate the party parameters, then split Alice's key into an bincode-encoded byte-array of keyshares.
-pub fn ceygen(parties: usize, threshold: usize, alice_key_byte_array: Vec<u8>) -> Result<Ceygen> {
+pub fn ceygen(parties: usize, threshold: usize, alice_key_byte_array: &[u8]) -> Result<Ceygen> {
     let alice_key = validate_secret_key(alice_key_byte_array)?;
     let party_share_counts =
         PartyShareCounts::from_vec(vec![1; parties]).expect("invalid party count");
@@ -81,8 +81,8 @@ pub fn ceygen(parties: usize, threshold: usize, alice_key_byte_array: Vec<u8>) -
 }
 
 // validate alice_key and return a SecretKey if valid.
-fn validate_secret_key(alice_key_byte_array: Vec<u8>) -> Result<NonZeroScalar> {
-    Ok(SecretKey::from_be_bytes(&alice_key_byte_array)?.to_nonzero_scalar())
+fn validate_secret_key(alice_key_byte_array: &[u8]) -> Result<NonZeroScalar> {
+    Ok(SecretKey::from_be_bytes(alice_key_byte_array)?.to_nonzero_scalar())
 }
 
 /// Write ceygen results to an output directory.
@@ -145,8 +145,8 @@ pub(crate) fn initialize_honest_parties(
                         subshare_id,
                         share.clone(),
                         &party_keygen_data,
-                        // #[cfg(feature = "malicious")]
-                        // Behaviour::Honest,
+                        #[cfg(feature = "malicious")]
+                        gg20::sign::malicious::Behaviour::Honest,
                     )
                     .expect("bad ceygen; need parties >= threshold+1")
                 })
@@ -275,7 +275,7 @@ pub fn new_ceygen(
     my_subshare_id: usize,
     share: Share,
     party_keygen_data: &PartyKeygenData,
-    // #[cfg(feature = "malicious")] behavior: malicious::Behavior,
+    #[cfg(feature = "malicious")] _behavior: gg20::sign::malicious::Behaviour,
 ) -> TofnResult<CeygenShareInfo> {
     if party_share_counts
         .iter()

@@ -23,7 +23,7 @@ pub struct SecretKeyShare {
 }
 
 /// `GroupPublicInfo` is the same for all shares
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GroupPublicInfo {
     party_share_counts: KeygenPartyShareCounts,
     threshold: usize,

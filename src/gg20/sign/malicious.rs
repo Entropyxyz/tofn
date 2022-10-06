@@ -1,7 +1,9 @@
 use tracing::info;
 
+use super::{r4, SignShareId};
 use crate::{
     collections::{HoleVecMap, TypedUsize, VecMap},
+    crypto_tools::k256_serde::ProjectivePoint,
     gg20::sign::{r3, type5_common::P2pSadType5},
     sdk::{
         api::{BytesVec, MsgType},
@@ -10,8 +12,7 @@ use crate::{
         },
     },
 };
-
-use super::{r4, SignShareId};
+use ecdsa::elliptic_curve::Field;
 
 // all malicious behaviours
 // names have the form <round><fault> where
@@ -76,10 +77,10 @@ pub fn delta_inverse_r3(
 
     let delta_i_sum_except_faulter = all_bcasts_deserialized
         .iter()
-        .map(|bcast| bcast.delta_i.as_ref())
+        .map(|bcast| bcast.delta_i)
         .fold(k256::Scalar::zero(), |acc, delta_i| acc + delta_i);
 
-    let faulter_delta_i_change = faulter_bcast.delta_i.as_ref() + delta_i_sum_except_faulter;
+    let faulter_delta_i_change = faulter_bcast.delta_i + delta_i_sum_except_faulter;
 
     faulter_bcast.delta_i = delta_i_sum_except_faulter.negate().into();
 
@@ -120,7 +121,7 @@ pub fn delta_inverse_r4(
     faulter_bcast: &mut BytesVec,
     faulter_p2ps: &mut HoleVecMap<SignShareId, BytesVec>,
 ) {
-    let mut faulter_bcast_deserialized = match deserialize::<r4::Bcast>(
+    let faulter_bcast_deserialized = match deserialize::<r4::Bcast>(
         &decode_message::<SignShareId>(faulter_bcast)
             .unwrap()
             .payload,
@@ -147,26 +148,21 @@ pub fn delta_inverse_r4(
         }
         DeltaInvFaultType::beta_ij { victim } => {
             let p2p = faulter_p2ps_deserialized.get_mut(*victim).unwrap();
-            *p2p.mta_plaintext.beta_secret.beta.as_mut() -= delta_i_change;
+            *Box::new(p2p.mta_plaintext.beta_secret.beta).as_mut() -= delta_i_change;
         }
         DeltaInvFaultType::k_i => {
-            *faulter_bcast_deserialized.1.k_i.as_mut() -= delta_i_change
-                * faulter_bcast_deserialized
-                    .1
-                    .gamma_i
-                    .as_ref()
-                    .invert()
-                    .unwrap();
+            *Box::new(faulter_bcast_deserialized.1.k_i).as_mut() -=
+                delta_i_change * faulter_bcast_deserialized.1.gamma_i.invert().unwrap();
         }
         DeltaInvFaultType::gamma_i => {
-            *faulter_bcast_deserialized.1.gamma_i.as_mut() -=
-                delta_i_change * faulter_bcast_deserialized.1.k_i.as_ref().invert().unwrap();
+            *Box::new(faulter_bcast_deserialized.1.gamma_i).as_mut() -=
+                delta_i_change * faulter_bcast_deserialized.1.k_i.invert().unwrap();
         }
         DeltaInvFaultType::Gamma_i_gamma_i => {
-            *faulter_bcast_deserialized.1.gamma_i.as_mut() -=
-                delta_i_change * faulter_bcast_deserialized.1.k_i.as_ref().invert().unwrap();
-            *faulter_bcast_deserialized.0.Gamma_i.as_mut() =
-                k256::ProjectivePoint::GENERATOR * faulter_bcast_deserialized.1.gamma_i.as_ref()
+            *Box::new(faulter_bcast_deserialized.1.gamma_i).as_mut() -=
+                delta_i_change * faulter_bcast_deserialized.1.k_i.invert().unwrap();
+            *Box::new(&faulter_bcast_deserialized.0.Gamma_i).as_mut() =
+                &(ProjectivePoint::GENERATOR * faulter_bcast_deserialized.1.gamma_i)
         }
     }
 

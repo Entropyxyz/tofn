@@ -131,10 +131,10 @@ fn compute_challenge(
             .chain(constants::PEDERSEN_PROOF_TAG.to_be_bytes())
             .chain(stmt.prover_id.to_bytes())
             .chain(k256_serde::point_to_bytes(stmt.commit))
-            .chain(&msg_g_g.map_or([0; 33], |(msg_g, _)| k256_serde::point_to_bytes(msg_g)))
-            .chain(&msg_g_g.map_or([0; 33], |(_, g)| k256_serde::point_to_bytes(g)))
+            .chain(msg_g_g.map_or([0; 33], |(msg_g, _)| k256_serde::point_to_bytes(msg_g)))
+            .chain(msg_g_g.map_or([0; 33], |(_, g)| k256_serde::point_to_bytes(g)))
             .chain(k256_serde::point_to_bytes(alpha))
-            .chain(&beta.map_or([0; 33], k256_serde::point_to_bytes))
+            .chain(beta.map_or([0; 33], k256_serde::point_to_bytes))
             .finalize_fixed(),
     )
 }

@@ -3,7 +3,7 @@ use super::{FillVecMap, TypedUsize};
 use crate::sdk::api::TofnResult;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Subset<K>(FillVecMap<K, ()>);
 
 impl<K> Subset<K> {

@@ -258,7 +258,7 @@ mod malicious {
         ) -> k256::Scalar {
             if let R7BadSI = self.behaviour {
                 log_confess_info(sign_id, &self.behaviour, "");
-                s_i += k256::Scalar::one();
+                s_i += k256::Scalar::ONE;
             }
             s_i
         }

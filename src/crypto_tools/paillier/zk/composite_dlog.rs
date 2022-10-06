@@ -29,7 +29,7 @@ use crate::crypto_tools::{
 use super::{super::utils::member_of_mul_group, NIZKStatement};
 
 /// Composite Dlog proof statement for `v = g^(-s) mod N`
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Zeroize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Zeroize)]
 pub struct CompositeDLogStmt<const WITNESS_SIZE: usize> {
     pub n: BigNumber,
     pub g: BigNumber,
@@ -39,7 +39,7 @@ pub struct CompositeDLogStmt<const WITNESS_SIZE: usize> {
 /// The base composite dlog statement that states that `v = g^(-s)`
 pub type CompositeDLogStmtBase = CompositeDLogStmt<S_WITNESS_SIZE>;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Zeroize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Zeroize)]
 pub struct CompositeDLogProof {
     x: BigNumber,
     y: BigNumber,

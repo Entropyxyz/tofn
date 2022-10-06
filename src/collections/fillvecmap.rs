@@ -8,7 +8,7 @@ use crate::sdk::api::{TofnFatal, TofnResult};
 
 use super::{vecmap_iter::VecMapIter, Subset, TypedUsize, VecMap};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct FillVecMap<K, V> {
     vec: VecMap<K, Option<V>>,
     some_count: usize,

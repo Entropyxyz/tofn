@@ -19,7 +19,7 @@ use composite_dlog::{CompositeDLogProof, CompositeDLogStmtBase};
 
 pub type EncryptionKeyProof = paillier_key::PaillierKeyProof;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Zeroize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Zeroize)]
 pub struct ZkSetup {
     dlog_stmt: CompositeDLogStmtBase,
 }

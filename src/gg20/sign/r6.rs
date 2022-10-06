@@ -1,3 +1,8 @@
+use super::{
+    r1, r2, r3, r4, r5, r7,
+    type5_common::{BcastSadType5, MtaPlaintext, P2pSadType5},
+    KeygenShareIds, Peers, SignShareId,
+};
 use crate::{
     collections::{FillVecMap, FullP2ps, HoleVecMap, P2ps, TypedUsize, VecMap},
     crypto_tools::{
@@ -14,12 +19,6 @@ use crate::{
 use k256::{ProjectivePoint, Scalar};
 use serde::{Deserialize, Serialize};
 use tracing::warn;
-
-use super::{
-    r1, r2, r3, r4, r5, r7,
-    type5_common::{BcastSadType5, MtaPlaintext, P2pSadType5},
-    KeygenShareIds, Peers, SignShareId,
-};
 
 #[cfg(feature = "malicious")]
 use super::malicious::Behaviour;
@@ -338,7 +337,7 @@ mod malicious {
         ) -> k256::Scalar {
             if let R3BadKI = self.behaviour {
                 log_confess_info(sign_id, &self.behaviour, "step 2/2: k_i");
-                k_i += k256::Scalar::one();
+                k_i += k256::Scalar::ONE;
             }
             k_i
         }
@@ -362,12 +361,12 @@ mod malicious {
             &self,
             my_sign_id: TypedUsize<SignShareId>,
             recipient: TypedUsize<SignShareId>,
-            mut beta_secret: Secret,
+            beta_secret: Secret,
         ) -> Secret {
             if let R3BadBeta { victim } = self.behaviour {
                 if victim == recipient {
                     log_confess_info(my_sign_id, &self.behaviour, "step 2/2: beta_secret");
-                    *beta_secret.beta.as_mut() += k256::Scalar::one();
+                    *Box::new(beta_secret.beta).as_mut() += k256::Scalar::ONE;
                 }
             }
             beta_secret

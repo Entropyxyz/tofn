@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-18.04
+          - ubuntu-latest
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -18,8 +18,24 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: nightly
           override: true
+
+      - name: Install deps
+        run: sudo apt install libgmp-dev
 
       - name: Run cargo test
         run: cargo test --release --all-features
+
+      - name: Multi-threaded tests
+        run: cargo test --test integration -- multi_thread
+
+      - name: Multi-threaded integration tests
+        run: cargo test --all-features --test integration -- multi_thread
+
+      - name: Single-threaded test
+        run: cargo test --test integration -- single_thread
+      
+      - name: Single-threaded integration tests
+        run: cargo test --all-features --test integration -- single_thread
+      
