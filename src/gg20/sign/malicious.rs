@@ -121,7 +121,7 @@ pub fn delta_inverse_r4(
     faulter_bcast: &mut BytesVec,
     faulter_p2ps: &mut HoleVecMap<SignShareId, BytesVec>,
 ) {
-    let faulter_bcast_deserialized = match deserialize::<r4::Bcast>(
+    let mut faulter_bcast_deserialized = match deserialize::<r4::Bcast>(
         &decode_message::<SignShareId>(faulter_bcast)
             .unwrap()
             .payload,
@@ -148,21 +148,21 @@ pub fn delta_inverse_r4(
         }
         DeltaInvFaultType::beta_ij { victim } => {
             let p2p = faulter_p2ps_deserialized.get_mut(*victim).unwrap();
-            *Box::new(p2p.mta_plaintext.beta_secret.beta).as_mut() -= delta_i_change;
+            p2p.mta_plaintext.beta_secret.beta -= delta_i_change;
         }
         DeltaInvFaultType::k_i => {
-            *Box::new(faulter_bcast_deserialized.1.k_i).as_mut() -=
+            faulter_bcast_deserialized.1.k_i -=
                 delta_i_change * faulter_bcast_deserialized.1.gamma_i.invert().unwrap();
         }
         DeltaInvFaultType::gamma_i => {
-            *Box::new(faulter_bcast_deserialized.1.gamma_i).as_mut() -=
+            faulter_bcast_deserialized.1.gamma_i -=
                 delta_i_change * faulter_bcast_deserialized.1.k_i.invert().unwrap();
         }
         DeltaInvFaultType::Gamma_i_gamma_i => {
-            *Box::new(faulter_bcast_deserialized.1.gamma_i).as_mut() -=
+            faulter_bcast_deserialized.1.gamma_i -=
                 delta_i_change * faulter_bcast_deserialized.1.k_i.invert().unwrap();
-            *Box::new(&faulter_bcast_deserialized.0.Gamma_i).as_mut() =
-                &(ProjectivePoint::GENERATOR * faulter_bcast_deserialized.1.gamma_i)
+            faulter_bcast_deserialized.0.Gamma_i =
+                ProjectivePoint::GENERATOR * faulter_bcast_deserialized.1.gamma_i;
         }
     }
 
