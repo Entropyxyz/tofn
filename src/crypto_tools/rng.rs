@@ -7,6 +7,7 @@ use ecdsa::elliptic_curve::generic_array::GenericArray;
 use hmac::{Hmac, Mac};
 use rand::{CryptoRng, RngCore, SeedableRng};
 use rand_chacha::ChaCha20Rng;
+use secrecy::{ExposeSecret, Secret};
 use sha2::{digest::Update, Sha256};
 use tracing::error;
 use zeroize::Zeroize;
@@ -107,20 +108,17 @@ pub(crate) fn rng_seed_ecdsa_ephemeral_scalar_with_party_id<K>(
     signing_key: &k256::Scalar,
     msg_to_sign: &k256::Scalar,
 ) -> TofnResult<impl CryptoRng + RngCore> {
-    let mut signing_key_bytes = signing_key.to_bytes();
     let msg_to_sign_bytes = msg_to_sign.to_bytes();
 
     // TODO: Use protocol domain separation: https://github.com/axelarnetwork/tofn/issues/184
     let seed = Hmac::<Sha256>::new(&Default::default())
         .chain(tag.to_be_bytes())
         .chain(party_id.to_bytes())
-        .chain(signing_key_bytes)
+        .chain(Secret::new(signing_key.to_bytes()).expose_secret())
         .chain(msg_to_sign_bytes)
         .finalize()
         .into_bytes()
         .into();
-
-    signing_key_bytes.zeroize();
 
     Ok(ChaCha20Rng::from_seed(seed))
 }
@@ -135,19 +133,16 @@ pub(crate) fn rng_seed_ecdsa_ephemeral_scalar(
     signing_key: &k256::Scalar,
     message_digest: &k256::Scalar,
 ) -> TofnResult<impl CryptoRng + RngCore> {
-    let mut signing_key_bytes = signing_key.to_bytes();
     let msg_to_sign_bytes = message_digest.to_bytes();
 
     let seed = Hmac::<Sha256>::new(&Default::default())
         .chain(protocol_tag.to_be_bytes())
         .chain(tag.to_be_bytes())
-        .chain(signing_key_bytes)
+        .chain(Secret::new(signing_key.to_bytes()).expose_secret())
         .chain(msg_to_sign_bytes)
         .finalize()
         .into_bytes()
         .into();
-
-    signing_key_bytes.zeroize();
 
     Ok(ChaCha20Rng::from_seed(seed))
 }
