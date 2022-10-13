@@ -3,7 +3,7 @@ use crate::{
     crypto_tools::{paillier, vss},
     gg20::{keygen::SecretKeyShare, sign::KeygenShareIds},
     sdk::{
-        api::{BytesVec, Fault::ProtocolFault, TofnFatal, TofnResult},
+        api::{Fault::ProtocolFault, Signature, TofnFatal, TofnResult},
         implementer_api::{log_fault_info, Executer, ProtocolBuilder, ProtocolInfo},
     },
 };
@@ -21,7 +21,7 @@ pub(in super::super) struct R4Sad {
 }
 
 impl Executer for R4Sad {
-    type FinalOutput = BytesVec;
+    type FinalOutput = Signature;
     type Index = SignShareId;
     type Bcast = r3::BcastHappy;
     type P2p = r3::P2pSad;

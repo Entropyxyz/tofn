@@ -4,7 +4,7 @@ use crate::{
         GroupPublicInfo, KeygenPartyId, KeygenShareId, SecretKeyShare, ShareSecretInfo,
     },
     sdk::{
-        api::{BytesVec, PartyShareCounts, Protocol, TofnFatal, TofnResult},
+        api::{PartyShareCounts, Protocol, Signature, TofnFatal, TofnResult},
         implementer_api::{new_protocol, ProtocolBuilder},
     },
 };
@@ -24,8 +24,8 @@ pub use crate::crypto_tools::message_digest::MessageDigest;
 /// The largest sign message is r2::P2pHappy with size ~6828 bytes on the wire.
 pub const MAX_MSG_LEN: usize = 7500;
 
-pub type SignProtocol = Protocol<BytesVec, SignShareId, SignPartyId, MAX_MSG_LEN>;
-pub type SignProtocolBuilder = ProtocolBuilder<BytesVec, SignShareId>;
+pub type SignProtocol = Protocol<Signature, SignShareId, SignPartyId, MAX_MSG_LEN>;
+pub type SignProtocolBuilder = ProtocolBuilder<Signature, SignShareId>;
 
 // This includes all shares participating in the current signing protocol
 pub type KeygenShareIds = VecMap<SignShareId, TypedUsize<KeygenShareId>>;

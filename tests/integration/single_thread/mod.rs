@@ -100,8 +100,7 @@ fn basic_correctness() {
         &k256::EncodedPoint::from_bytes(pubkey_bytes).unwrap(),
     )
     .unwrap();
-    let sig = k256::ecdsa::Signature::from_der(signatures.get(TypedUsize::from_usize(0)).unwrap())
-        .unwrap();
+    let sig = signatures.get(TypedUsize::from_usize(0)).unwrap();
     assert!(pubkey
         .verify_prehashed(k256::Scalar::from(&msg_to_sign), &sig)
         .is_ok());

@@ -12,7 +12,7 @@ use crate::{
     },
     gg20::keygen::{KeygenShareId, SecretKeyShare},
     sdk::{
-        api::{BytesVec, Fault::ProtocolFault, TofnResult},
+        api::{Fault::ProtocolFault, Signature, TofnResult},
         implementer_api::{serialize, Executer, ProtocolBuilder, ProtocolInfo, RoundBuilder},
     },
 };
@@ -72,7 +72,7 @@ pub struct P2pSad {
 }
 
 impl Executer for R6 {
-    type FinalOutput = BytesVec;
+    type FinalOutput = Signature;
     type Index = SignShareId;
     type Bcast = r5::Bcast;
     type P2p = r5::P2p;

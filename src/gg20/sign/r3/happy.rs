@@ -13,7 +13,7 @@ use crate::{
         },
     },
     sdk::{
-        api::{BytesVec, TofnFatal, TofnResult},
+        api::{Signature, TofnFatal, TofnResult},
         implementer_api::{serialize, Executer, ProtocolBuilder, ProtocolInfo, RoundBuilder},
     },
 };
@@ -67,7 +67,7 @@ pub(in super::super) enum Accusation {
 }
 
 impl Executer for R3Happy {
-    type FinalOutput = BytesVec;
+    type FinalOutput = Signature;
     type Index = SignShareId;
     type Bcast = ();
     type P2p = r2::P2p;

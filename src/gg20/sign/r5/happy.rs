@@ -12,7 +12,7 @@ use crate::{
         sign::{r5::common::R5Path, type5_common},
     },
     sdk::{
-        api::{BytesVec, Fault::ProtocolFault, TofnFatal, TofnResult},
+        api::{Fault::ProtocolFault, Signature, TofnFatal, TofnResult},
         implementer_api::{serialize, Executer, ProtocolBuilder, ProtocolInfo, RoundBuilder},
     },
 };
@@ -62,7 +62,7 @@ pub(in super::super) struct P2p {
 }
 
 impl Executer for R5 {
-    type FinalOutput = BytesVec;
+    type FinalOutput = Signature;
     type Index = SignShareId;
     type Bcast = r4::Bcast;
     type P2p = type5_common::P2pSadType5;

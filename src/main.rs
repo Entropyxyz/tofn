@@ -121,9 +121,7 @@ fn sign(cli: SignCli) -> anyhow::Result<()> {
     let sign_parties = {
         let mut sign_parties = SignParties::with_max_size(party_share_counts.party_count());
         for i in &cli.parties {
-            sign_parties
-                .add(TypedUsize::from_usize(*i as usize))
-                .unwrap();
+            sign_parties.add(TypedUsize::from_usize(*i)).unwrap();
         }
         sign_parties
     };
@@ -166,10 +164,9 @@ fn sign(cli: SignCli) -> anyhow::Result<()> {
         &k256::EncodedPoint::from_bytes(pubkey_bytes).unwrap(),
     )
     .unwrap();
-    let sig = k256::ecdsa::Signature::from_der(signatures.get(TypedUsize::from_usize(0)).unwrap())
-        .unwrap();
+    let sig = signatures.get(TypedUsize::from_usize(0)).unwrap();
     assert!(pubkey
-        .verify_prehashed(k256::Scalar::from(&msg_to_sign), &sig)
+        .verify_prehashed(k256::Scalar::from(&msg_to_sign), sig)
         .is_ok());
 
     info!(

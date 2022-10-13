@@ -1,4 +1,6 @@
 //! API for tofn users
+pub use k256::ecdsa::Signature;
+
 pub type TofnResult<T> = Result<T, TofnFatal>;
 pub type BytesVec = Vec<u8>;
 

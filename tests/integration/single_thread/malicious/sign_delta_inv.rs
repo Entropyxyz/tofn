@@ -9,7 +9,9 @@ use tofn::{
             new_sign, MessageDigest, SignParties, SignPartyId, SignProtocol, SignShareId,
         },
     },
-    sdk::api::{BytesVec, Fault, PartyShareCounts, Protocol, ProtocolOutput, TofnResult},
+    sdk::api::{
+        BytesVec, Fault, PartyShareCounts, Protocol, ProtocolOutput, Signature, TofnResult,
+    },
 };
 use tracing::{info, warn};
 
@@ -123,14 +125,14 @@ pub struct DeltaInvTestData {
     pub party_share_counts: PartyShareCounts<KeygenPartyId>,
     pub threshold: usize,
     pub sign_parties: SignParties,
-    pub expected_honest_output: ProtocolOutput<BytesVec, SignPartyId>,
+    pub expected_honest_output: ProtocolOutput<Signature, SignPartyId>,
     pub faulter_share_id: TypedUsize<SignShareId>,
     pub fault_type: DeltaInvFaultType,
     pub delta_i_change: Option<k256::Scalar>,
 }
 
 impl DeltaInvTestData {
-    pub fn assert_expected_output(&self, output: &ProtocolOutput<BytesVec, SignPartyId>) {
+    pub fn assert_expected_output(&self, output: &ProtocolOutput<Signature, SignPartyId>) {
         match output {
             Ok(_) => assert!(
                 self.expected_honest_output.is_ok(),

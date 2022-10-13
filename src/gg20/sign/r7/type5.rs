@@ -13,7 +13,7 @@ use crate::{
         },
     },
     sdk::{
-        api::{BytesVec, Fault::ProtocolFault, TofnFatal, TofnResult},
+        api::{Fault::ProtocolFault, Signature, TofnFatal, TofnResult},
         implementer_api::{Executer, ProtocolBuilder, ProtocolInfo},
     },
 };
@@ -36,7 +36,7 @@ pub(in super::super) struct R7Type5 {
 }
 
 impl Executer for R7Type5 {
-    type FinalOutput = BytesVec;
+    type FinalOutput = Signature;
     type Index = SignShareId;
     type Bcast = r6::Bcast;
     type P2p = r6::P2p;
