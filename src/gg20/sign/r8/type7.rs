@@ -8,7 +8,7 @@ use crate::{
         sign::{r2, r8::common::R8Path, KeygenShareIds},
     },
     sdk::{
-        api::{BytesVec, Fault::ProtocolFault, TofnFatal, TofnResult},
+        api::{Fault::ProtocolFault, Signature, TofnFatal, TofnResult},
         implementer_api::{Executer, ProtocolBuilder, ProtocolInfo},
     },
 };
@@ -40,7 +40,7 @@ pub(in super::super) struct Bcast {
 }
 
 impl Executer for R8Type7 {
-    type FinalOutput = BytesVec;
+    type FinalOutput = Signature;
     type Index = SignShareId;
     type Bcast = r7::Bcast;
     type P2p = r7::P2p;

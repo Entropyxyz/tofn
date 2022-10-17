@@ -6,7 +6,7 @@ use crate::{
         sign::{r3::common::R3Path, KeygenShareIds},
     },
     sdk::{
-        api::{BytesVec, Fault::ProtocolFault, TofnFatal, TofnResult},
+        api::{Fault::ProtocolFault, Signature, TofnFatal, TofnResult},
         implementer_api::{log_fault_info, Executer, ProtocolBuilder, ProtocolInfo},
     },
 };
@@ -27,7 +27,7 @@ pub(in super::super) struct R3Sad {
 }
 
 impl Executer for R3Sad {
-    type FinalOutput = BytesVec;
+    type FinalOutput = Signature;
     type Index = SignShareId;
     type Bcast = ();
     type P2p = r2::P2p;

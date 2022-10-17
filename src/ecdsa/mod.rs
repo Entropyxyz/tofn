@@ -1,7 +1,7 @@
 use crate::{
     constants::ECDSA_TAG,
     crypto_tools::{k256_serde, message_digest, rng},
-    sdk::api::{BytesVec, TofnFatal, TofnResult},
+    sdk::api::{Signature, TofnFatal, TofnResult},
 };
 use ecdsa::{
     elliptic_curve::{sec1::ToEncodedPoint, Field},
@@ -57,12 +57,11 @@ pub fn keygen(
     })
 }
 
-/// Returns a ASN.1 DER-encoded ECDSA signature.
-/// These signatures have variable byte length so we must return a [BytesVec] instead of a [u8] array.
+/// Returns a ECDSA signature.
 pub fn sign(
     signing_key: &k256_serde::SecretScalar,
     message_digest: &MessageDigest,
-) -> TofnResult<BytesVec> {
+) -> TofnResult<Signature> {
     let signing_key = signing_key.as_ref();
     let message_digest = k256::Scalar::from(message_digest);
 
@@ -78,24 +77,23 @@ pub fn sign(
         })?
         .0;
 
-    Ok(signature.to_der().as_bytes().to_vec())
+    Ok(signature)
 }
 
 pub fn verify(
     encoded_verifying_key: &[u8; 33],
     message_digest: &MessageDigest,
-    encoded_signature: &[u8],
+    signature: &Signature,
 ) -> TofnResult<bool> {
     // TODO decode failure should not be `TofnFatal`?
     let verifying_key =
         k256_serde::ProjectivePoint::from_bytes(encoded_verifying_key).ok_or(TofnFatal)?;
-    let signature = k256::ecdsa::Signature::from_der(encoded_signature).map_err(|_| TofnFatal)?;
     let hashed_msg = k256::Scalar::from(message_digest);
 
     Ok(verifying_key
         .as_ref()
         .to_affine()
-        .verify_prehashed(hashed_msg, &signature)
+        .verify_prehashed(hashed_msg, signature)
         .is_ok())
 }
 
@@ -114,11 +112,11 @@ mod tests {
         let message_digest = MessageDigest::try_from(&[42; 32][..]).unwrap();
 
         let key_pair = keygen(&dummy_secret_recovery_key(42), b"tofn nonce").unwrap();
-        let encoded_signature = sign(key_pair.signing_key(), &message_digest).unwrap();
+        let signature = sign(key_pair.signing_key(), &message_digest).unwrap();
         let success = verify(
             key_pair.encoded_verifying_key(),
             &message_digest,
-            &encoded_signature,
+            &signature,
         )
         .unwrap();
 

@@ -16,7 +16,7 @@ use crate::{
         },
     },
     sdk::{
-        api::{BytesVec, Fault::ProtocolFault, TofnFatal, TofnResult},
+        api::{Fault::ProtocolFault, Signature, TofnFatal, TofnResult},
         implementer_api::{serialize, Executer, ProtocolBuilder, ProtocolInfo, RoundBuilder},
     },
 };
@@ -51,7 +51,7 @@ pub(in super::super) struct R7Happy {
 }
 
 impl Executer for R7Happy {
-    type FinalOutput = BytesVec;
+    type FinalOutput = Signature;
     type Index = SignShareId;
     type Bcast = r6::Bcast;
     type P2p = r6::P2p;

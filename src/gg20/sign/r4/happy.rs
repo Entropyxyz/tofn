@@ -10,7 +10,7 @@ use crate::{
         },
     },
     sdk::{
-        api::{BytesVec, Fault::ProtocolFault, TofnResult},
+        api::{Fault::ProtocolFault, Signature, TofnResult},
         implementer_api::{serialize, Executer, ProtocolBuilder, ProtocolInfo, RoundBuilder},
     },
 };
@@ -53,7 +53,7 @@ pub struct BcastHappy {
 }
 
 impl Executer for R4Happy {
-    type FinalOutput = BytesVec;
+    type FinalOutput = Signature;
     type Index = SignShareId;
     type Bcast = r3::BcastHappy;
     type P2p = r3::P2pSad;

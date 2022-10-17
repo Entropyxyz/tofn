@@ -9,7 +9,7 @@ use crate::{
     },
     sdk::implementer_api::{decode_message, deserialize, encode_message},
     sdk::{
-        api::{BytesVec, Fault, Protocol, Round},
+        api::{BytesVec, Fault, Protocol, Round, Signature},
         implementer_api::{serialize, ExpectedMsgTypes, MsgType},
     },
 };
@@ -17,18 +17,18 @@ use ecdsa::{
     elliptic_curve::{ops::Reduce, sec1::ToEncodedPoint},
     hazmat::VerifyPrimitive,
 };
-use k256::{ecdsa::Signature, ProjectivePoint};
+use k256::ProjectivePoint;
 use tracing::debug;
 use tracing_test::traced_test;
 
 #[cfg(feature = "malicious")]
 use crate::gg20::sign::malicious::Behaviour::Honest;
 
-type Party = Round<BytesVec, SignShareId, SignPartyId, MAX_MSG_LEN>;
+type Party = Round<Signature, SignShareId, SignPartyId, MAX_MSG_LEN>;
 type Parties = Vec<Party>;
 type PartyBcast = Result<VecMap<SignShareId, BytesVec>, ()>;
 type PartyP2p = Result<VecMap<SignShareId, HoleVecMap<SignShareId, BytesVec>>, ()>;
-type PartyResult = Result<BytesVec, FillVecMap<SignPartyId, Fault>>;
+type PartyResult = Result<Signature, FillVecMap<SignPartyId, Fault>>;
 struct TestCase {
     party_share_counts: KeygenPartyShareCounts,
     threshold: usize,
@@ -239,15 +239,11 @@ fn execute_sign(
         let sig = Signature::from_scalars(r, s).unwrap();
         sig.normalize_s().unwrap_or(sig)
     };
-    let encoded_sig = sig.to_der().as_bytes().to_vec();
 
     for result in results {
-        let encoded_threshold_sig = result.expect("round 8 signature computation failed");
-        let threshold_sig =
-            Signature::from_der(&encoded_threshold_sig).expect("decoding threshold sig failed");
+        let threshold_sig = result.expect("round 8 signature computation failed");
 
         assert_eq!(threshold_sig, sig);
-        assert_eq!(encoded_threshold_sig, encoded_sig);
     }
 
     // TEST: signature verification

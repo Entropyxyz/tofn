@@ -12,7 +12,7 @@ use tofn::{
             new_sign, MessageDigest, SignParties, SignPartyId, SignShareId,
         },
     },
-    sdk::api::{BytesVec, Fault, PartyShareCounts, Protocol::*, ProtocolOutput},
+    sdk::api::{Fault, PartyShareCounts, Protocol::*, ProtocolOutput, Signature},
 };
 use tracing::info;
 
@@ -132,13 +132,13 @@ pub struct SingleFaultTestCaseList {
     pub threshold: usize,
     pub sign_parties: SignParties,
     // pub share_behaviours: VecMap<SignParticipantIndex, Behaviour>,
-    pub expected_honest_output: ProtocolOutput<BytesVec, SignPartyId>,
+    pub expected_honest_output: ProtocolOutput<Signature, SignPartyId>,
     pub cases: Vec<Behaviour>,
     pub malicious_sign_share_id: TypedUsize<SignShareId>,
 }
 
 impl SingleFaultTestCaseList {
-    pub fn assert_expected_output(&self, output: &ProtocolOutput<BytesVec, SignPartyId>) {
+    pub fn assert_expected_output(&self, output: &ProtocolOutput<Signature, SignPartyId>) {
         match output {
             Ok(_) => assert!(
                 self.expected_honest_output.is_ok(),

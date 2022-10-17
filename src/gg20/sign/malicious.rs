@@ -82,7 +82,7 @@ pub fn delta_inverse_r3(
 
     let faulter_delta_i_change = faulter_bcast.delta_i + delta_i_sum_except_faulter;
 
-    faulter_bcast.delta_i = delta_i_sum_except_faulter.negate().into();
+    faulter_bcast.delta_i = delta_i_sum_except_faulter.negate();
 
     all_bcasts_deserialized.insert(faulter_share_id.as_usize(), faulter_bcast);
 

@@ -2,12 +2,12 @@ use crate::{
     collections::{FillVecMap, P2ps, VecMap},
     gg20::{keygen::SecretKeyShare, sign::r8::common::R8Path},
     sdk::{
-        api::{BytesVec, Fault::ProtocolFault, TofnFatal, TofnResult},
+        api::{Fault::ProtocolFault, Signature, TofnFatal, TofnResult},
         implementer_api::{Executer, ProtocolBuilder, ProtocolInfo},
     },
 };
 use ecdsa::hazmat::VerifyPrimitive;
-use k256::{ecdsa::Signature, ProjectivePoint, Scalar};
+use k256::{ProjectivePoint, Scalar};
 use serde::{Deserialize, Serialize};
 use tracing::{error, warn};
 
@@ -33,7 +33,7 @@ pub(in super::super) struct Bcast {
 }
 
 impl Executer for R8Happy {
-    type FinalOutput = BytesVec;
+    type FinalOutput = Signature;
     type Index = SignShareId;
     type Bcast = r7::Bcast;
     type P2p = r7::P2p;
@@ -94,10 +94,7 @@ impl Executer for R8Happy {
         let pub_key = &self.secret_key_share.group().y().as_ref().to_affine();
 
         if pub_key.verify_prehashed(self.msg_to_sign, &sig).is_ok() {
-            // convert signature into ASN1/DER (Bitcoin) format
-            let sig_bytes = sig.to_der().as_bytes().to_vec();
-
-            return Ok(ProtocolBuilder::Done(Ok(sig_bytes)));
+            return Ok(ProtocolBuilder::Done(Ok(sig)));
         }
 
         // verify proofs

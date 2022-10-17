@@ -5,7 +5,7 @@ use crate::{
         GroupPublicInfo, KeygenPartyId, KeygenShareId, SecretKeyShare, ShareSecretInfo,
     },
     sdk::{
-        api::{BytesVec, PartyShareCounts, Protocol, TofnFatal, TofnResult},
+        api::{PartyShareCounts, Protocol, Signature, TofnFatal, TofnResult},
         implementer_api::{new_protocol, ProtocolBuilder},
     },
 };
@@ -18,7 +18,7 @@ pub use crate::crypto_tools::message_digest::MessageDigest;
 /// SignProtocol output for a single share in happy path
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SignatureShare {
-    pub signature_bytes: BytesVec, // ASN1/DER (Bitcoin) encoding
+    pub signature: Signature,
     pub party_id: TypedUsize<KeygenPartyId>,
     pub subshare_id: usize,
 }
