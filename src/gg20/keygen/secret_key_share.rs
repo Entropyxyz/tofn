@@ -9,7 +9,7 @@ use crate::{
         implementer_api::{decode, encode},
     },
 };
-use k256::ProjectivePoint;
+use k256::{ecdsa::VerifyingKey, ProjectivePoint};
 use serde::{Deserialize, Serialize};
 use tracing::error;
 use zeroize::Zeroize;
@@ -74,11 +74,11 @@ impl GroupPublicInfo {
         self.threshold
     }
 
-    /// SEC1-encoded curve point
-    /// tofnd can send this data through grpc
-    /// TODO change return type to `[u8; 33]`?
-    pub fn encoded_pubkey(&self) -> BytesVec {
-        self.y.to_bytes().to_vec()
+    /// Verification key corresponding to this group of signers.
+    pub fn verifying_key(&self) -> VerifyingKey {
+        let pp: &k256::ProjectivePoint = self.y.as_ref();
+        let pk = k256::PublicKey::from_affine(pp.to_affine()).unwrap();
+        VerifyingKey::from(pk)
     }
 
     pub fn all_shares_bytes(&self) -> TofnResult<BytesVec> {

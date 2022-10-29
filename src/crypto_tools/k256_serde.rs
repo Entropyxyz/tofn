@@ -105,10 +105,10 @@ impl ProjectivePoint {
 
     /// Decode from a SEC1-encoded curve point.
     pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        Some(Self(
-            k256::ProjectivePoint::from_encoded_point(&k256::EncodedPoint::from_bytes(bytes).ok()?)
-                .unwrap(),
-        ))
+        let encoded_point = k256::EncodedPoint::from_bytes(bytes).ok()?;
+        let projective_point: Option<k256::ProjectivePoint> =
+            k256::ProjectivePoint::from_encoded_point(&encoded_point).into();
+        Some(Self(projective_point?))
     }
 }
 
