@@ -166,7 +166,7 @@ fn sign(cli: SignCli) -> anyhow::Result<()> {
     .unwrap();
     let sig = signatures.get(TypedUsize::from_usize(0)).unwrap();
     assert!(pubkey
-        .verify_prehashed(k256::Scalar::from(&msg_to_sign), sig)
+        .verify_prehashed(k256::Scalar::from(&msg_to_sign).into(), sig)
         .is_ok());
 
     info!(

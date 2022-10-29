@@ -93,7 +93,10 @@ impl Executer for R8Happy {
 
         let pub_key = &self.secret_key_share.group().y().as_ref().to_affine();
 
-        if pub_key.verify_prehashed(self.msg_to_sign, &sig).is_ok() {
+        if pub_key
+            .verify_prehashed(self.msg_to_sign.into(), &sig)
+            .is_ok()
+        {
             return Ok(ProtocolBuilder::Done(Ok(sig)));
         }
 

@@ -101,11 +101,11 @@ mod tests {
         let hashed_msg = k256::Scalar::random(rand::thread_rng());
         let ephemeral_scalar = k256::Scalar::random(rand::thread_rng());
         let signature = signing_key
-            .try_sign_prehashed(ephemeral_scalar, hashed_msg)
+            .try_sign_prehashed(ephemeral_scalar, hashed_msg.into())
             .unwrap();
         let verifying_key = (k256::ProjectivePoint::GENERATOR * signing_key).to_affine();
         verifying_key
-            .verify_prehashed(hashed_msg, &signature.0)
+            .verify_prehashed(hashed_msg.into(), &signature.0)
             .unwrap();
     }
 }

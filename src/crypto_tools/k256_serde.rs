@@ -205,16 +205,18 @@ mod tests {
     #[test]
     fn basic_round_trip() {
         let s = Scalar::random(rand::thread_rng());
-        basic_round_trip_impl::<_, Scalar>(s, Some(33));
+        basic_round_trip_impl::<_, Scalar>(s, Some(32));
 
         let p = k256::ProjectivePoint::GENERATOR * s;
         basic_round_trip_impl::<_, ProjectivePoint>(p, None);
 
         let hashed_msg = k256::Scalar::random(rand::thread_rng());
         let ephemeral_scalar = k256::Scalar::random(rand::thread_rng());
-        let signature = s.try_sign_prehashed(ephemeral_scalar, hashed_msg).unwrap();
+        let signature = s
+            .try_sign_prehashed(ephemeral_scalar, hashed_msg.into())
+            .unwrap();
         p.to_affine()
-            .verify_prehashed(hashed_msg, &signature.0)
+            .verify_prehashed(hashed_msg.into(), &signature.0)
             .unwrap();
         basic_round_trip_impl::<_, Signature>(signature.0, None);
 
@@ -232,7 +234,6 @@ mod tests {
         let v = U::from(val);
         let v_serialized = bincode.serialize(&v).unwrap();
         if let Some(size) = size {
-            // tk note: failing: v_serialized.len() is 33, not 32 bytes
             assert_eq!(v_serialized.len(), size);
         }
         let v_deserialized = bincode.deserialize(&v_serialized).unwrap();
@@ -263,18 +264,17 @@ mod tests {
 
         // As used by `serdect` serializer:
         // array length (0x20) + 32 bytes of the serialized scalar.
-        let mut modulus: [u8; 33] = [
-            0x20, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-            0xff, 0xff, 0xfe, 0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b, 0xbf, 0xd2, 0x5e,
-            0x8c, 0xd0, 0x36, 0x41, 0x41,
+        let mut modulus: [u8; 32] = [
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xfe, 0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b, 0xbf, 0xd2, 0x5e, 0x8c,
+            0xd0, 0x36, 0x41, 0x41,
         ]; // secp256k1 modulus
 
         // test edge case: integer too large
         bincode.deserialize::<S>(&modulus).unwrap_err();
 
         // test edge case: integer not too large
-        // tk note: failing. I lack the knowledge about bincode to solve this quickly.
-        modulus[32] -= 1;
+        modulus[31] -= 1;
         bincode.deserialize::<S>(&modulus).unwrap();
     }
 }

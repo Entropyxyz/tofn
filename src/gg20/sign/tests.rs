@@ -248,7 +248,7 @@ fn execute_sign(
 
     // TEST: signature verification
     let pub_key = y.to_affine();
-    assert!(pub_key.verify_prehashed(m, &sig).is_ok());
+    assert!(pub_key.verify_prehashed(m.into(), &sig).is_ok());
 }
 
 #[test]
