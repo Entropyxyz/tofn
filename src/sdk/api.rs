@@ -1,5 +1,5 @@
 //! API for tofn users
-pub use k256::ecdsa::Signature;
+pub use k256::ecdsa::{recoverable::Signature as RecoverableSignature, Signature, VerifyingKey};
 
 pub type TofnResult<T> = Result<T, TofnFatal>;
 pub type BytesVec = Vec<u8>;
@@ -23,3 +23,13 @@ pub use super::wire_bytes::{deserialize, serialize};
 
 #[cfg(feature = "malicious")]
 pub use super::wire_bytes::MsgType;
+
+pub fn to_recoverable_signature(
+    verifying_key: &VerifyingKey,
+    message: &[u8],
+    signature: &Signature,
+) -> Option<RecoverableSignature> {
+    let message_array = k256::FieldBytes::from_exact_iter(message.iter().cloned())?;
+    RecoverableSignature::from_digest_bytes_trial_recovery(verifying_key, &message_array, signature)
+        .ok()
+}
