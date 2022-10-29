@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use crate::common;
-use ecdsa::{elliptic_curve::sec1::FromEncodedPoint, hazmat::VerifyPrimitive};
+use ecdsa::signature::hazmat::PrehashVerifier;
 use execute::*;
 use tofn::{
     collections::{TypedUsize, VecMap},
@@ -89,21 +89,15 @@ fn basic_correctness() {
     });
 
     // grab pubkey bytes from one of the shares
-    let pubkey_bytes = secret_key_shares
+    let vkey = secret_key_shares
         .get(TypedUsize::from_usize(0))
         .unwrap()
         .group()
-        .encoded_pubkey();
+        .verifying_key();
 
     // verify a signature
-    let pubkey = k256::AffinePoint::from_encoded_point(
-        &k256::EncodedPoint::from_bytes(pubkey_bytes).unwrap(),
-    )
-    .unwrap();
     let sig = signatures.get(TypedUsize::from_usize(0)).unwrap();
-    assert!(pubkey
-        .verify_prehashed(k256::Scalar::from(&msg_to_sign).into(), &sig)
-        .is_ok());
+    assert!(vkey.verify_prehash(msg_to_sign.as_ref(), sig).is_ok());
 }
 
 mod execute;

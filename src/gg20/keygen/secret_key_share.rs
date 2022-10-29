@@ -77,16 +77,15 @@ impl GroupPublicInfo {
     /// Verification key corresponding to this group of signers.
     pub fn verifying_key(&self) -> VerifyingKey {
         let pp: &k256::ProjectivePoint = self.y.as_ref();
+        // TODO: this can only fail if the point is the infinity point,
+        // which cannot happen because of how it is constructed.
+        // This may be possible to enforce statically in the future.
         let pk = k256::PublicKey::from_affine(pp.to_affine()).unwrap();
         VerifyingKey::from(pk)
     }
 
     pub fn all_shares_bytes(&self) -> TofnResult<BytesVec> {
         encode(&self.all_shares)
-    }
-
-    pub fn y(&self) -> &k256_serde::ProjectivePoint {
-        &self.y
     }
 
     pub fn all_shares(&self) -> &VecMap<KeygenShareId, SharePublicInfo> {
@@ -102,6 +101,9 @@ impl GroupPublicInfo {
         Self {
             party_share_counts,
             threshold,
+            // TODO: this point is not an infinity point by construction
+            // (since it's the generator times a scalar), but there's no way at the moment
+            // to statically enforce it.
             y,
             all_shares,
         }

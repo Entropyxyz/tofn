@@ -158,9 +158,9 @@ fn execute_sign(
     let y = ProjectivePoint::GENERATOR * x;
 
     for (keygen_id, key_share) in &key_shares {
+        let y_from_vk: ProjectivePoint = key_share.group().verifying_key().into();
         assert_eq!(
-            y,
-            *key_share.group().y().as_ref(),
+            y, y_from_vk,
             "Share {} has invalid group public key",
             keygen_id
         );

@@ -242,9 +242,9 @@ fn execute_keygen_from_recovery(
     // test: verify that the reconstructed secret key yields the public key everyone deduced
     for (share_id, secret_key_share) in all_secret_key_shares.iter() {
         let test_pubkey = k256::ProjectivePoint::GENERATOR * secret_key_recovered;
+        let vk_point: k256::ProjectivePoint = secret_key_share.group().verifying_key().into();
         assert_eq!(
-            &test_pubkey,
-            secret_key_share.group().y().as_ref(),
+            &test_pubkey, &vk_point,
             "share {} has invalid pub key",
             share_id
         );
@@ -297,7 +297,7 @@ fn share_recovery(
     let first_share_id = TypedUsize::from_usize(0);
     let group_info = shares.get(first_share_id).unwrap().group();
     let group_info_bytes = group_info.all_shares_bytes().unwrap();
-    let pubkey_bytes = group_info.encoded_pubkey();
+    let pubkey_bytes = group_info.verifying_key().to_bytes();
 
     let recovered_party_keypairs: VecMap<KeygenPartyId, PartyKeyPair> = (0..party_share_counts
         .party_count())
@@ -340,7 +340,12 @@ fn share_recovery(
             assert_eq!(ss.zkp(), rr.zkp(), "party {} public info on party {}", i, j);
         }
         assert_eq!(s.group().threshold(), r.group().threshold(), "party {}", i);
-        assert_eq!(s.group().y(), r.group().y(), "party {}", i);
+        assert_eq!(
+            s.group().verifying_key(),
+            r.group().verifying_key(),
+            "party {}",
+            i
+        );
     }
 
     // Also test that equality works on the share struct
