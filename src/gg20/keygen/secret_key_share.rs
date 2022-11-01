@@ -9,7 +9,7 @@ use crate::{
         implementer_api::{decode, encode},
     },
 };
-use k256::ProjectivePoint;
+use k256::{ecdsa::VerifyingKey, ProjectivePoint};
 use serde::{Deserialize, Serialize};
 use tracing::error;
 use zeroize::Zeroize;
@@ -74,19 +74,18 @@ impl GroupPublicInfo {
         self.threshold
     }
 
-    /// SEC1-encoded curve point
-    /// tofnd can send this data through grpc
-    /// TODO change return type to `[u8; 33]`?
-    pub fn encoded_pubkey(&self) -> BytesVec {
-        self.y.to_bytes().to_vec()
+    /// Verification key corresponding to this group of signers.
+    pub fn verifying_key(&self) -> VerifyingKey {
+        let pp: &k256::ProjectivePoint = self.y.as_ref();
+        // TODO: this can only fail if the point is the infinity point,
+        // which cannot happen because of how it is constructed.
+        // This may be possible to enforce statically in the future.
+        let pk = k256::PublicKey::from_affine(pp.to_affine()).unwrap();
+        VerifyingKey::from(pk)
     }
 
     pub fn all_shares_bytes(&self) -> TofnResult<BytesVec> {
         encode(&self.all_shares)
-    }
-
-    pub fn y(&self) -> &k256_serde::ProjectivePoint {
-        &self.y
     }
 
     pub fn all_shares(&self) -> &VecMap<KeygenShareId, SharePublicInfo> {
@@ -102,6 +101,9 @@ impl GroupPublicInfo {
         Self {
             party_share_counts,
             threshold,
+            // TODO: this point is not an infinity point by construction
+            // (since it's the generator times a scalar), but there's no way at the moment
+            // to statically enforce it.
             y,
             all_shares,
         }

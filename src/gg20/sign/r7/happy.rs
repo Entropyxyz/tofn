@@ -147,7 +147,8 @@ impl Executer for R7Happy {
         // malicious actor falsely claim type 7 fault by comparing against a corrupted S_i_sum
         corrupt!(S_i_sum, self.corrupt_S_i_sum(info.my_id(), S_i_sum));
 
-        if &S_i_sum != self.secret_key_share.group().y().as_ref() {
+        let vk_point: ProjectivePoint = self.secret_key_share.group().verifying_key().into();
+        if S_i_sum != vk_point {
             warn!("peer {} says: 'type 7' fault detected", my_sign_id);
 
             // recover encryption randomness for mu; need to decrypt again to do so

@@ -157,7 +157,7 @@ fn execute_sign(
             .as_ref()
             .to_affine();
         verifying_key
-            .verify_prehashed(hashed_msg, &sig_share.signature)
+            .verify_prehashed(hashed_msg.into(), &sig_share.signature)
             .unwrap();
     }
 }

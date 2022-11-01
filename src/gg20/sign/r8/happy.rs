@@ -91,9 +91,13 @@ impl Executer for R8Happy {
             sig.normalize_s().unwrap_or(sig)
         };
 
-        let pub_key = &self.secret_key_share.group().y().as_ref().to_affine();
+        let vkey = &self.secret_key_share.group().verifying_key();
+        let point = k256::ProjectivePoint::from(vkey).to_affine();
 
-        if pub_key.verify_prehashed(self.msg_to_sign, &sig).is_ok() {
+        if point
+            .verify_prehashed(self.msg_to_sign.into(), &sig)
+            .is_ok()
+        {
             return Ok(ProtocolBuilder::Done(Ok(sig)));
         }
 

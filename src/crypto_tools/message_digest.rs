@@ -9,6 +9,12 @@ use std::{
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct MessageDigest([u8; 32]);
 
+impl AsRef<[u8]> for MessageDigest {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 impl TryFrom<&[u8]> for MessageDigest {
     type Error = TryFromSliceError;
     fn try_from(v: &[u8]) -> Result<Self, Self::Error> {
