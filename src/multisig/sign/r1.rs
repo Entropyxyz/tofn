@@ -35,7 +35,7 @@ pub(super) fn start(
     let ephemeral_scalar = k256::Scalar::random(rng);
 
     let signature = signing_key
-        .try_sign_prehashed(ephemeral_scalar, msg_to_sign.into())
+        .try_sign_prehashed(ephemeral_scalar, msg_to_sign)
         .map_err(|_| TofnFatal)?;
 
     let bcast_out = Some(serialize(&Bcast {

@@ -1,6 +1,9 @@
 //! API for tofn users
 pub use k256::ecdsa::{recoverable::Signature as RecoverableSignature, Signature, VerifyingKey};
 
+use ecdsa::{elliptic_curve::ops::Reduce, hazmat::VerifyPrimitive};
+use k256::{ecdsa::recoverable::Id, FieldBytes, PublicKey, Scalar, U256};
+
 pub type TofnResult<T> = Result<T, TofnFatal>;
 pub type BytesVec = Vec<u8>;
 
@@ -29,7 +32,32 @@ pub fn to_recoverable_signature(
     message: &[u8],
     signature: &Signature,
 ) -> Option<RecoverableSignature> {
-    let message_array = k256::FieldBytes::from_exact_iter(message.iter().cloned())?;
-    RecoverableSignature::from_digest_bytes_trial_recovery(verifying_key, &message_array, signature)
-        .ok()
+    // TODO: replace with `RecoverableSignature::from_digest_bytes_trial_recovery()` call
+    // when k256 is bumped to 0.11.
+
+    let signature = signature.normalize_s().unwrap_or(*signature);
+    let message_array = FieldBytes::from_exact_iter(message.iter().cloned())?;
+
+    for recovery_id in 0..=1 {
+        let id = Id::new(recovery_id).ok()?;
+        let recoverable_signature = RecoverableSignature::new(&signature, id).ok()?;
+        let recovered_key = recoverable_signature
+            .recover_verify_key_from_digest_bytes(&message_array)
+            .ok()?;
+        if verifying_key != &recovered_key {
+            continue;
+        }
+
+        let pk: PublicKey = verifying_key.into();
+        let scalar_message = <Scalar as Reduce<U256>>::from_be_bytes_reduced(message_array);
+        if pk
+            .as_affine()
+            .verify_prehashed(scalar_message, &signature)
+            .is_ok()
+        {
+            return Some(recoverable_signature);
+        }
+    }
+
+    None
 }

@@ -1,6 +1,7 @@
 use crate::common;
 use broadcaster::Broadcaster;
-use ecdsa::signature::hazmat::PrehashVerifier;
+use ecdsa::hazmat::VerifyPrimitive;
+use k256::PublicKey;
 use std::{convert::TryFrom, sync::mpsc, thread};
 use tofn::{
     collections::{TypedUsize, VecMap},
@@ -125,7 +126,11 @@ fn basic_correctness() {
 
     // verify a signature
     let sig = signatures.get(TypedUsize::from_usize(0)).unwrap();
-    assert!(vkey.verify_prehash(msg_to_sign.as_ref(), sig).is_ok());
+    let pk: PublicKey = vkey.into();
+    assert!(pk
+        .as_affine()
+        .verify_prehashed((&msg_to_sign).into(), sig)
+        .is_ok());
 }
 
 mod broadcaster {

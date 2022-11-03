@@ -242,9 +242,10 @@ fn execute_keygen_from_recovery(
     // test: verify that the reconstructed secret key yields the public key everyone deduced
     for (share_id, secret_key_share) in all_secret_key_shares.iter() {
         let test_pubkey = k256::ProjectivePoint::GENERATOR * secret_key_recovered;
-        let vk_point: k256::ProjectivePoint = secret_key_share.group().verifying_key().into();
+        let vk_as_pk: k256::PublicKey = secret_key_share.group().verifying_key().into();
         assert_eq!(
-            &test_pubkey, &vk_point,
+            &test_pubkey,
+            &vk_as_pk.to_projective(),
             "share {} has invalid pub key",
             share_id
         );

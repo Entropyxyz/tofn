@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use ecdsa::hazmat::VerifyPrimitive;
-use k256::{ProjectivePoint, Scalar};
+use k256::{ProjectivePoint, PublicKey, Scalar};
 use serde::{Deserialize, Serialize};
 use tracing::{error, warn};
 
@@ -91,13 +91,10 @@ impl Executer for R8Happy {
             sig.normalize_s().unwrap_or(sig)
         };
 
-        let vkey = &self.secret_key_share.group().verifying_key();
-        let point = k256::ProjectivePoint::from(vkey).to_affine();
+        let pkey: PublicKey = self.secret_key_share.group().verifying_key().into();
+        let point = pkey.as_affine();
 
-        if point
-            .verify_prehashed(self.msg_to_sign.into(), &sig)
-            .is_ok()
-        {
+        if point.verify_prehashed(self.msg_to_sign, &sig).is_ok() {
             return Ok(ProtocolBuilder::Done(Ok(sig)));
         }
 

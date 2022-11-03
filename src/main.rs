@@ -1,6 +1,7 @@
 use bincode::Options;
 use clap::{Args, Parser, Subcommand};
-use ecdsa::signature::hazmat::PrehashVerifier;
+use ecdsa::hazmat::VerifyPrimitive;
+use k256::PublicKey;
 use std::{
     convert::TryFrom,
     fs,
@@ -161,7 +162,11 @@ fn sign(cli: SignCli) -> anyhow::Result<()> {
 
     // verify a signature
     let sig = signatures.get(TypedUsize::from_usize(0)).unwrap();
-    assert!(vkey.verify_prehash(msg_to_sign.as_ref(), sig).is_ok());
+    let pk: PublicKey = vkey.into();
+    assert!(pk
+        .as_affine()
+        .verify_prehashed((&msg_to_sign).into(), sig)
+        .is_ok());
 
     info!(
         "message: {:?} successfully signed by parties: {:?}",

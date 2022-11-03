@@ -21,7 +21,7 @@ use crate::{
     },
 };
 use ecdsa::elliptic_curve::{ops::Reduce, sec1::ToEncodedPoint};
-use k256::{ProjectivePoint, Scalar};
+use k256::{ProjectivePoint, PublicKey, Scalar};
 use tracing::{error, warn};
 
 use super::super::{r1, r2, r3, r5, r6, r8, Peers};
@@ -147,8 +147,8 @@ impl Executer for R7Happy {
         // malicious actor falsely claim type 7 fault by comparing against a corrupted S_i_sum
         corrupt!(S_i_sum, self.corrupt_S_i_sum(info.my_id(), S_i_sum));
 
-        let vk_point: ProjectivePoint = self.secret_key_share.group().verifying_key().into();
-        if S_i_sum != vk_point {
+        let vk_as_pk: PublicKey = self.secret_key_share.group().verifying_key().into();
+        if S_i_sum != vk_as_pk.to_projective() {
             warn!("peer {} says: 'type 7' fault detected", my_sign_id);
 
             // recover encryption randomness for mu; need to decrypt again to do so

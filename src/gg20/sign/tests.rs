@@ -17,7 +17,7 @@ use ecdsa::{
     elliptic_curve::{ops::Reduce, sec1::ToEncodedPoint},
     hazmat::VerifyPrimitive,
 };
-use k256::ProjectivePoint;
+use k256::{ProjectivePoint, PublicKey};
 use tracing::debug;
 use tracing_test::traced_test;
 
@@ -158,9 +158,10 @@ fn execute_sign(
     let y = ProjectivePoint::GENERATOR * x;
 
     for (keygen_id, key_share) in &key_shares {
-        let y_from_vk: ProjectivePoint = key_share.group().verifying_key().into();
+        let y_from_vk: PublicKey = key_share.group().verifying_key().into();
         assert_eq!(
-            y, y_from_vk,
+            y,
+            y_from_vk.to_projective(),
             "Share {} has invalid group public key",
             keygen_id
         );

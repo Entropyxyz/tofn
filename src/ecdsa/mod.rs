@@ -70,7 +70,7 @@ pub fn sign(
     let ephemeral_scalar = k256::Scalar::random(rng);
 
     let signature = signing_key
-        .try_sign_prehashed(ephemeral_scalar, message_digest.into())
+        .try_sign_prehashed(ephemeral_scalar, message_digest)
         .map_err(|_| {
             error!("failure to sign");
             TofnFatal
@@ -93,7 +93,7 @@ pub fn verify(
     Ok(verifying_key
         .as_ref()
         .to_affine()
-        .verify_prehashed(hashed_msg.into(), signature)
+        .verify_prehashed(hashed_msg, signature)
         .is_ok())
 }
 
