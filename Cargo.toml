@@ -24,8 +24,8 @@ zeroize = { version = "1.4", features = ["zeroize_derive"] }
 hex = "0.4.3"
 
 # k256 baggage
-k256 = { version = "0.11.6", features = ["serde"] }
-ecdsa = "0.14.6"
+k256 = { version = "0.10.4", features = ["serde"] }
+ecdsa = { version = "0.13.4", features = ["hazmat"] }
 rand = "0.8"
 sha2 = { version = "0.10.2", features = [
   "std",

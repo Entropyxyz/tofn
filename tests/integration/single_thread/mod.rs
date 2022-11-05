@@ -1,8 +1,9 @@
 use std::convert::TryFrom;
 
 use crate::common;
-use ecdsa::signature::hazmat::PrehashVerifier;
+use ecdsa::hazmat::VerifyPrimitive;
 use execute::*;
+use k256::PublicKey;
 use tofn::{
     collections::{TypedUsize, VecMap},
     gg20::{
@@ -97,7 +98,11 @@ fn basic_correctness() {
 
     // verify a signature
     let sig = signatures.get(TypedUsize::from_usize(0)).unwrap();
-    assert!(vkey.verify_prehash(msg_to_sign.as_ref(), sig).is_ok());
+    let pk: PublicKey = vkey.into();
+    assert!(pk
+        .as_affine()
+        .verify_prehashed((&msg_to_sign).into(), sig)
+        .is_ok());
 }
 
 mod execute;
