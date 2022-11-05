@@ -121,7 +121,7 @@ impl CompositeDLogStmtBase {
 
         loop {
             // Sample an asymmetric basis g
-            let g = BigNumber::random_with_rng(rng, n);
+            let g = BigNumber::from_rng(n, rng);
 
             // g is asymmetric when Jacobi symbol (g | n) = -1
             if jacobi_symbol(&g, p, q) != -1 {
@@ -132,7 +132,7 @@ impl CompositeDLogStmtBase {
             // If p and q are safe primes, then any odd number `s` is invertible with very high probability.
             // If p and q are not safe primes, then this can occur often, and we need to resample.
             let (s, s_inv) = loop {
-                let s = SecretNumber((BigNumber::random_with_rng(rng, &S_div_2) << 1) + 1);
+                let s = SecretNumber((BigNumber::from_rng(&S_div_2, rng) << 1) + 1);
 
                 // Inversion will fail if s is not co-prime to phi(N)
                 match s.0.invert(totient) {

@@ -202,7 +202,7 @@ impl ZkSetup {
         });
 
         // v = c1^alpha Paillier-Enc(gamma, beta) mod N^2
-        let v = stmt.ek.encrypt_with_randomness(&gamma, &beta).0.modmul(
+        let v = stmt.ek.encrypt_unchecked(&gamma, &beta).0.modmul(
             &stmt.ciphertext1.0.modpow(&alpha.0, stmt.ek.0.nn()),
             stmt.ek.0.nn(),
         );
@@ -395,14 +395,10 @@ impl ZkSetup {
         }
 
         // c1^s1 s^N Gamma^t1 ?= c2^e v mod N^2
-        let cipher_check_lhs = stmt
-            .ek
-            .encrypt_with_randomness(&proof.t1, &proof.s)
-            .0
-            .modmul(
-                &stmt.ciphertext1.0.modpow(&proof.s1.0, stmt.ek.0.nn()),
-                stmt.ek.0.nn(),
-            );
+        let cipher_check_lhs = stmt.ek.encrypt_unchecked(&proof.t1, &proof.s).0.modmul(
+            &stmt.ciphertext1.0.modpow(&proof.s1.0, stmt.ek.0.nn()),
+            stmt.ek.0.nn(),
+        );
         let cipher_check_rhs = proof.v.modmul(
             &stmt.ciphertext2.0.modpow(&e_bigint, stmt.ek.0.nn()),
             stmt.ek.0.nn(),
@@ -470,7 +466,7 @@ pub(crate) mod tests {
         let ciphertext1 = &Ciphertext(BigNumber::random(ek.0.nn()));
         let ciphertext2 = &ek.add(
             &ek.mul(ciphertext1, &Plaintext::from_scalar(x)),
-            &ek.encrypt_with_randomness(msg, randomness),
+            &ek.encrypt_unchecked(msg, randomness),
         );
         let prover_id = TypedUsize::from_usize(1);
         let verifier_id = TypedUsize::from_usize(4);

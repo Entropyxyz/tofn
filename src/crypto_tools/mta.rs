@@ -44,7 +44,7 @@ pub fn mta_response_from_randomness(
     beta_prime: &Plaintext,
     beta_prime_randomness: &Randomness,
 ) -> (Ciphertext, k256::Scalar) {
-    let beta_prime_ciphertext = a_ek.encrypt_with_randomness(beta_prime, beta_prime_randomness);
+    let beta_prime_ciphertext = a_ek.encrypt_unchecked(beta_prime, beta_prime_randomness);
     let c_b = a_ek.add(
         &a_ek.mul(a_ciphertext, &Plaintext::from_scalar(b)),
         &beta_prime_ciphertext,

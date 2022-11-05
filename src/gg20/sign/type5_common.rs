@@ -113,7 +113,7 @@ pub fn type5_checks(
         }
 
         // k_i
-        let k_i_ciphertext = peer_ek.encrypt_with_randomness(
+        let k_i_ciphertext = peer_ek.encrypt_unchecked(
             &bcast_type5.k_i.borrow().into(),
             &bcast_type5.k_i_randomness,
         );
@@ -184,7 +184,7 @@ pub fn type5_checks(
             }
 
             // alpha_ij
-            let peer_alpha_ciphertext = peer_ek.encrypt_with_randomness(
+            let peer_alpha_ciphertext = peer_ek.encrypt_unchecked(
                 &peer_mta_plaintext.alpha_plaintext,
                 &peer_mta_plaintext.alpha_randomness,
             );
