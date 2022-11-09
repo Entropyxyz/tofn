@@ -1,8 +1,21 @@
 //! API for tofn users
 pub use k256::ecdsa::{recoverable::Signature as RecoverableSignature, Signature, VerifyingKey};
 
-use ecdsa::{elliptic_curve::ops::Reduce, hazmat::VerifyPrimitive};
-use k256::{ecdsa::recoverable::Id, FieldBytes, PublicKey, Scalar, U256};
+use ecdsa::hazmat::VerifyPrimitive;
+use k256::{
+    ecdsa::recoverable::Id,
+    elliptic_curve::{
+        generic_array::{
+            sequence::Split,
+            typenum::{U12, U20},
+            GenericArray,
+        },
+        ops::Reduce,
+        sec1::ToEncodedPoint,
+    },
+    FieldBytes, PublicKey, Scalar, U256,
+};
+use sha3::{digest::Update, Digest, Keccak256};
 
 pub type TofnResult<T> = Result<T, TofnFatal>;
 pub type BytesVec = Vec<u8>;
@@ -60,4 +73,14 @@ pub fn to_recoverable_signature(
     }
 
     None
+}
+
+pub fn derive_ethereum_address(vkey: &VerifyingKey) -> [u8; 20] {
+    let uncompressed = vkey.to_encoded_point(false);
+    let hash = Keccak256::new()
+        // the first byte is the uncompressed tag (0x04)
+        .chain(&uncompressed.as_bytes()[1..])
+        .finalize();
+    let (_, last_bytes): (GenericArray<u8, U12>, GenericArray<u8, U20>) = hash.split();
+    last_bytes.into()
 }
