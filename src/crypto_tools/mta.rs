@@ -128,7 +128,7 @@ pub fn mta_response_with_proof_wc(
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::Borrow;
+    use core::borrow::Borrow;
 
     use super::{mta_response_with_proof_wc, verify_mta_response};
     use crate::{

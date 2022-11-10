@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use crate::{
     collections::TypedUsize,
     crypto_tools::{constants, hash, k256_serde, paillier, vss},

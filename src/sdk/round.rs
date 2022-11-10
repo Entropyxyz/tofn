@@ -1,3 +1,6 @@
+use alloc::boxed::Box;
+use alloc::vec::Vec;
+
 use tracing::{debug, error, info, warn};
 
 use crate::{
@@ -333,7 +336,7 @@ impl<F, K, P, const MAX_MSG_IN_LEN: usize> Round<F, K, P, MAX_MSG_IN_LEN> {
     }
 
     #[cfg(test)]
-    pub fn round_as_any(&self) -> &dyn std::any::Any {
+    pub fn round_as_any(&self) -> &dyn core::any::Any {
         self.round.as_any()
     }
 

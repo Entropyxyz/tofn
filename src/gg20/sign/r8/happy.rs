@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use crate::{
     collections::{FillVecMap, P2ps, VecMap},
     gg20::{keygen::SecretKeyShare, sign::r8::common::R8Path},
@@ -126,7 +128,7 @@ impl Executer for R8Happy {
     }
 
     #[cfg(test)]
-    fn as_any(&self) -> &dyn std::any::Any {
+    fn as_any(&self) -> &dyn core::any::Any {
         self
     }
 }

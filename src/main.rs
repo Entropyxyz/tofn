@@ -1,4 +1,6 @@
+use anyhow::Result;
 use bincode::Options;
+use chrono::{Datelike, Timelike, Utc};
 use clap::{Args, Parser, Subcommand};
 use ecdsa::hazmat::VerifyPrimitive;
 use k256::PublicKey;
@@ -13,6 +15,7 @@ use tofn::{
     crypto_tools::message_digest::MessageDigest,
     gg20,
     gg20::{
+        ceygen::Ceygen,
         keygen::{KeygenPartyId, KeygenShareId, SecretKeyShare},
         sign::{new_sign, SignParties, SignShareId},
     },
@@ -91,7 +94,7 @@ fn ceygen(cli: CeygenCli) -> anyhow::Result<()> {
     OsRng.fill_bytes(&mut key);
     let ceygen = tofn::gg20::ceygen::ceygen(cli.parties, cli.threshold, &key)?;
     key.zeroize();
-    tofn::gg20::ceygen::write_ceygen_results(ceygen, cli.dir.map(PathBuf::from))?;
+    write_ceygen_results(ceygen, cli.dir.map(PathBuf::from))?;
     Ok(())
 }
 
@@ -173,6 +176,40 @@ fn sign(cli: SignCli) -> anyhow::Result<()> {
         msg_to_sign, cli.parties
     );
     Ok(())
+}
+
+/// Write ceygen results to an output directory.
+fn write_ceygen_results(ceygen: Ceygen, output_dir: Option<PathBuf>) -> Result<()> {
+    let path = output_dir.unwrap_or_else(|| {
+        let timestamp = timestamp();
+        PathBuf::from(format!("tofn_ceygen_{timestamp}"))
+    });
+    std::fs::create_dir(path.clone())?;
+
+    // write secret key shares and party share counts to dir
+    let (psce, skse) = ceygen;
+    let path_s = path.to_str().unwrap();
+    skse.into_iter().for_each(|(index, encoded_share)| {
+        std::fs::write(Path::new(&(format!("{}/{}", path_s, index))), encoded_share).unwrap();
+    });
+    std::fs::write(Path::new(&format!("{}/party_share_counts", path_s)), psce)?;
+
+    info!("ceygen keyshares written to: {}", path_s);
+    Ok(())
+}
+
+/// helper, get a quick timestamp
+fn timestamp() -> String {
+    let now = Utc::now();
+    format!(
+        "{}{}{}:{}{}{}",
+        now.year(),
+        now.month(),
+        now.day(),
+        now.hour(),
+        now.minute(),
+        now.second()
+    )
 }
 
 mod execute {

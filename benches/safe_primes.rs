@@ -1,4 +1,4 @@
-use std::borrow::Borrow;
+use core::borrow::Borrow;
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use libpaillier::{unknown_order::BigNumber, DecryptionKey, EncryptionKey};

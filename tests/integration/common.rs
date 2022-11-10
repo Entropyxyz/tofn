@@ -1,4 +1,4 @@
-use std::convert::TryInto;
+use core::convert::TryInto;
 
 use tofn::{collections::TypedUsize, gg20::keygen::SecretRecoveryKey};
 

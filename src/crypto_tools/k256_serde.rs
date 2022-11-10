@@ -77,7 +77,7 @@ struct EncodedPointVisitor;
 impl<'de> Visitor<'de> for EncodedPointVisitor {
     type Value = EncodedPoint;
 
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
         formatter.write_str("SEC1-encoded secp256k1 (K-256) curve point")
     }
 
@@ -112,7 +112,7 @@ impl ProjectivePoint {
     }
 }
 
-impl std::ops::Mul<Scalar> for ProjectivePoint {
+impl core::ops::Mul<Scalar> for ProjectivePoint {
     type Output = Self;
 
     fn mul(self, rhs: Scalar) -> Self::Output {
@@ -197,10 +197,10 @@ fn to_array33(g: GenericArray<u8, U33>) -> [u8; 33] {
 mod tests {
     use super::*;
     use bincode::Options;
+    use core::fmt::Debug;
     use ecdsa::hazmat::{SignPrimitive, VerifyPrimitive};
     use k256::{ecdsa::Signature, elliptic_curve::Field, Scalar};
     use serde::de::DeserializeOwned;
-    use std::fmt::Debug;
 
     #[test]
     fn basic_round_trip() {

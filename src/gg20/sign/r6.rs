@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use super::{
     r1, r2, r3, r4, r5, r7,
     type5_common::{BcastSadType5, MtaPlaintext, P2pSadType5},
@@ -310,13 +312,16 @@ impl Executer for R6 {
     }
 
     #[cfg(test)]
-    fn as_any(&self) -> &dyn std::any::Any {
+    fn as_any(&self) -> &dyn core::any::Any {
         self
     }
 }
 
 #[cfg(feature = "malicious")]
 mod malicious {
+
+    use alloc::boxed::Box;
+
     use super::R6;
     use crate::{
         collections::{HoleVecMap, TypedUsize},

@@ -1,4 +1,4 @@
-use std::{
+use core::{
     array::TryFromSliceError,
     convert::{TryFrom, TryInto},
 };

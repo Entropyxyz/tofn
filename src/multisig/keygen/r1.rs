@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use crate::{
     collections::TypedUsize,
     crypto_tools::{k256_serde, rng},

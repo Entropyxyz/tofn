@@ -1,5 +1,5 @@
+use core::marker::PhantomData;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::marker::PhantomData;
 use zeroize::Zeroize;
 
 pub struct TypedUsize<K>(usize, PhantomData<K>);
@@ -38,14 +38,14 @@ impl<K> Clone for TypedUsize<K> {
     }
 }
 
-impl<K> std::fmt::Debug for TypedUsize<K> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<K> core::fmt::Debug for TypedUsize<K> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.0.fmt(f)
     }
 }
 
-impl<K> std::fmt::Display for TypedUsize<K> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<K> core::fmt::Display for TypedUsize<K> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.0.fmt(f)
     }
 }

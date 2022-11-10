@@ -1,4 +1,4 @@
-use std::borrow::Borrow;
+use core::borrow::Borrow;
 
 use k256::ProjectivePoint;
 use serde::{Deserialize, Serialize};

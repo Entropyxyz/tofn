@@ -18,7 +18,7 @@ pub fn zip3<K, I0, I1, I2>(
 pub struct Zip2<K, I0, I1> {
     iter0: VecMapIter<K, I0>,
     iter1: VecMapIter<K, I1>,
-    phantom: std::marker::PhantomData<K>,
+    phantom: core::marker::PhantomData<K>,
 }
 
 impl<K, I0, I1> Zip2<K, I0, I1> {
@@ -26,7 +26,7 @@ impl<K, I0, I1> Zip2<K, I0, I1> {
         Self {
             iter0,
             iter1,
-            phantom: std::marker::PhantomData,
+            phantom: core::marker::PhantomData,
         }
     }
 }
@@ -53,7 +53,7 @@ pub struct Zip3<K, I0, I1, I2> {
     iter0: VecMapIter<K, I0>,
     iter1: VecMapIter<K, I1>,
     iter2: VecMapIter<K, I2>,
-    phantom: std::marker::PhantomData<K>,
+    phantom: core::marker::PhantomData<K>,
 }
 
 impl<K, I0, I1, I2> Zip3<K, I0, I1, I2> {
@@ -66,7 +66,7 @@ impl<K, I0, I1, I2> Zip3<K, I0, I1, I2> {
             iter0,
             iter1,
             iter2,
-            phantom: std::marker::PhantomData,
+            phantom: core::marker::PhantomData,
         }
     }
 }

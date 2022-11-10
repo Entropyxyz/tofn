@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use crate::{
     collections::{FillVecMap, FullP2ps, HoleVecMap, P2ps, TypedUsize, VecMap},
     crypto_tools::{
@@ -213,7 +215,7 @@ impl Executer for R5 {
     }
 
     #[cfg(test)]
-    fn as_any(&self) -> &dyn std::any::Any {
+    fn as_any(&self) -> &dyn core::any::Any {
         self
     }
 }

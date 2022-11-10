@@ -234,6 +234,8 @@ pub mod malicious {
 
 #[cfg(test)]
 mod tests {
+    use alloc::vec;
+
     use ecdsa::elliptic_curve::{sec1::FromEncodedPoint, Field};
 
     use super::{

@@ -1,4 +1,4 @@
-use std::ops::Neg;
+use core::ops::Neg;
 
 use crate::{
     collections::TypedUsize,
@@ -349,6 +349,9 @@ pub mod malicious {
 }
 #[cfg(test)]
 mod tests {
+    use alloc::format;
+    use alloc::string::{String, ToString};
+
     use crate::{collections::TypedUsize, crypto_tools::paillier::keygen_unsafe};
 
     use super::{

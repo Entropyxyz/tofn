@@ -1,6 +1,6 @@
 use super::{vecmap_iter::VecMapIter, TypedUsize};
 
-/// Follows the implementation of std::iter::Enumerate https://doc.rust-lang.org/std/iter/struct.Enumerate.html
+/// Follows the implementation of core::iter::Enumerate https://doc.rust-lang.org/std/iter/struct.Enumerate.html
 pub struct HoleVecMapIter<K, I> {
     iter: VecMapIter<K, I>,
     hole: TypedUsize<K>,

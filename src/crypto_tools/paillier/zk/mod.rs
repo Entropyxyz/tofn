@@ -1,4 +1,7 @@
 //! Minimize direct use of paillier, zk_paillier crates
+
+use alloc::vec::Vec;
+
 use crate::{crypto_tools::constants, sdk::api::TofnResult};
 
 use super::{keygen, keygen_unsafe, DecryptionKey, EncryptionKey, Plaintext, Randomness};

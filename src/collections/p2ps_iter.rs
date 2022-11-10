@@ -1,6 +1,6 @@
 use super::{holevecmap_iter::HoleVecMapIter, vecmap_iter::VecMapIter, TypedUsize};
 
-// follow the example of std::iter::Flatten: https://doc.rust-lang.org/src/core/iter/adapters/flatten.rs.html#251-278
+// follow the example of core::iter::Flatten: https://doc.rust-lang.org/src/core/iter/adapters/flatten.rs.html#251-278
 pub struct P2psIter<K, I0, I1> {
     iter0: VecMapIter<K, I0>,
     iter1: Option<HoleVecMapIter<K, I1>>,

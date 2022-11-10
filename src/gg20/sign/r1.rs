@@ -1,4 +1,6 @@
-use std::borrow::Borrow;
+use alloc::boxed::Box;
+use alloc::vec::Vec;
+use core::borrow::Borrow;
 
 use crate::{
     collections::TypedUsize,

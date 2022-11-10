@@ -1,3 +1,4 @@
+use alloc::boxed::Box;
 use tracing::{error, warn};
 
 use crate::{
@@ -137,7 +138,7 @@ impl Executer for R4Sad {
     }
 
     #[cfg(test)]
-    fn as_any(&self) -> &dyn std::any::Any {
+    fn as_any(&self) -> &dyn core::any::Any {
         self
     }
 }

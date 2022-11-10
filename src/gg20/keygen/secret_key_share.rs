@@ -1,4 +1,5 @@
-use std::borrow::Borrow;
+use alloc::vec::Vec;
+use core::borrow::Borrow;
 
 use super::{KeygenPartyId, KeygenPartyShareCounts, KeygenShareId, PartyKeyPair};
 use crate::{

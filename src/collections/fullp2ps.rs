@@ -1,3 +1,4 @@
+use alloc::vec::Vec;
 use tracing::error;
 
 use crate::{
@@ -49,10 +50,10 @@ impl<K, V> FullP2ps<K, V> {
         }))
     }
 
-    // pub fn iter(&self) -> P2psIter<K, std::slice::Iter<HoleVecMap<K, V>>, std::slice::Iter<V>> {
+    // pub fn iter(&self) -> P2psIter<K, core::slice::Iter<HoleVecMap<K, V>>, core::slice::Iter<V>> {
     //     P2psIter::new(self.0.iter())
     // }
-    pub fn iter(&self) -> VecMapIter<K, std::slice::Iter<HoleVecMap<K, V>>> {
+    pub fn iter(&self) -> VecMapIter<K, core::slice::Iter<HoleVecMap<K, V>>> {
         self.0.iter()
     }
 
@@ -104,9 +105,9 @@ impl<K, V> FullP2ps<K, V> {
 impl<K, V> IntoIterator for FullP2ps<K, V> {
     type Item = (
         TypedUsize<K>,
-        <std::vec::IntoIter<HoleVecMap<K, V>> as Iterator>::Item,
+        <alloc::vec::IntoIter<HoleVecMap<K, V>> as Iterator>::Item,
     );
-    type IntoIter = VecMapIter<K, std::vec::IntoIter<HoleVecMap<K, V>>>;
+    type IntoIter = VecMapIter<K, alloc::vec::IntoIter<HoleVecMap<K, V>>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -118,9 +119,9 @@ impl<K, V> IntoIterator for FullP2ps<K, V> {
 impl<'a, K, V> IntoIterator for &'a FullP2ps<K, V> {
     type Item = (
         TypedUsize<K>,
-        <std::slice::Iter<'a, HoleVecMap<K, V>> as Iterator>::Item,
+        <core::slice::Iter<'a, HoleVecMap<K, V>> as Iterator>::Item,
     );
-    type IntoIter = VecMapIter<K, std::slice::Iter<'a, HoleVecMap<K, V>>>;
+    type IntoIter = VecMapIter<K, core::slice::Iter<'a, HoleVecMap<K, V>>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()

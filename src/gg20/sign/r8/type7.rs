@@ -1,4 +1,6 @@
-use std::borrow::Borrow;
+use alloc::boxed::Box;
+use alloc::vec::Vec;
+use core::borrow::Borrow;
 
 use crate::{
     collections::{zip2, FillVecMap, FullP2ps, P2ps, TypedUsize, VecMap},
@@ -259,7 +261,7 @@ impl Executer for R8Type7 {
     }
 
     #[cfg(test)]
-    fn as_any(&self) -> &dyn std::any::Any {
+    fn as_any(&self) -> &dyn core::any::Any {
         self
     }
 }

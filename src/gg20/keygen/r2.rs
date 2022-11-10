@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 
@@ -166,7 +168,7 @@ impl Executer for R2 {
     }
 
     #[cfg(test)]
-    fn as_any(&self) -> &dyn std::any::Any {
+    fn as_any(&self) -> &dyn core::any::Any {
         self
     }
 }

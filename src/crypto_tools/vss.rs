@@ -1,4 +1,7 @@
 //! Helpers for verifiable secret sharing
+
+use alloc::vec::Vec;
+
 use crate::{
     crypto_tools::k256_serde,
     sdk::api::{TofnFatal, TofnResult},
@@ -206,6 +209,8 @@ pub(crate) fn recover_secret(shares: &[Share]) -> k256::Scalar {
 
 #[cfg(test)]
 mod tests {
+    use alloc::vec;
+
     use super::*;
     use rand::prelude::SliceRandom;
 

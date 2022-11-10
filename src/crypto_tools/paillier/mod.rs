@@ -3,7 +3,9 @@
 //! * provide an ergonomic API
 //! * facilitate easy swap-out of Paillier back-end
 
-use std::borrow::Borrow;
+use alloc::vec;
+use alloc::vec::Vec;
+use core::borrow::Borrow;
 
 use ecdsa::elliptic_curve::ops::Reduce;
 use libpaillier::unknown_order::BigNumber;

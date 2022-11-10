@@ -2,7 +2,7 @@ use crate::{
     common::keygen,
     single_thread::{execute::execute_protocol, set_up_logs},
 };
-use std::convert::TryFrom;
+use core::convert::TryFrom;
 use tofn::{
     collections::{FillVecMap, TypedUsize, VecMap},
     gg20::{

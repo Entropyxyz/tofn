@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use crate::{
     collections::{zip2, FillVecMap, FullP2ps, P2ps, VecMap},
     gg20::{
@@ -135,7 +137,7 @@ impl Executer for R7Type5 {
     }
 
     #[cfg(test)]
-    fn as_any(&self) -> &dyn std::any::Any {
+    fn as_any(&self) -> &dyn core::any::Any {
         self
     }
 }

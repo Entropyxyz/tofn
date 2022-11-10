@@ -1,6 +1,6 @@
 use super::TypedUsize;
 
-/// Follows the implementation of std::iter::Enumerate https://doc.rust-lang.org/std/iter/struct.Enumerate.html
+/// Follows the implementation of core::iter::Enumerate https://doc.rust-lang.org/std/iter/struct.Enumerate.html
 pub struct VecMapIter<K, I> {
     iter: I,
     count: TypedUsize<K>,

@@ -3,12 +3,12 @@ use crate::{
     crypto_tools::{k256_serde, message_digest, rng},
     sdk::api::{Signature, TofnFatal, TofnResult},
 };
+use core::convert::TryInto;
 use ecdsa::{
     elliptic_curve::{sec1::ToEncodedPoint, Field},
     hazmat::{SignPrimitive, VerifyPrimitive},
 };
 use message_digest::MessageDigest;
-use std::convert::TryInto;
 use tracing::error;
 
 #[derive(Debug)]
@@ -105,7 +105,7 @@ const SIGN_TAG: u8 = 0x01;
 mod tests {
     use super::{keygen, sign, verify};
     use crate::{crypto_tools::rng::dummy_secret_recovery_key, multisig::sign::MessageDigest};
-    use std::convert::TryFrom;
+    use core::convert::TryFrom;
 
     #[test]
     fn keygen_sign_decode_verify() {

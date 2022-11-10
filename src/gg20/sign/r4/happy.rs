@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use crate::{
     collections::{zip2, FillVecMap, FullP2ps, HoleVecMap, P2ps, TypedUsize, VecMap},
     crypto_tools::{hash::Randomness, k256_serde, mta::Secret, paillier, zkp::pedersen},
@@ -219,7 +221,7 @@ impl Executer for R4Happy {
     }
 
     #[cfg(test)]
-    fn as_any(&self) -> &dyn std::any::Any {
+    fn as_any(&self) -> &dyn core::any::Any {
         self
     }
 }

@@ -1,5 +1,7 @@
 //! A fillable VecMap
-use std::iter::FromIterator;
+
+use alloc::vec::Vec;
+use core::iter::FromIterator;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tracing::error;
@@ -57,7 +59,7 @@ impl<K, V> FillVecMap<K, V> {
     pub fn some_count(&self) -> usize {
         self.some_count
     }
-    pub fn iter(&self) -> VecMapIter<K, std::slice::Iter<Option<V>>> {
+    pub fn iter(&self) -> VecMapIter<K, core::slice::Iter<Option<V>>> {
         self.vec.iter()
     }
 
@@ -84,7 +86,7 @@ impl<K, V> FillVecMap<K, V> {
     }
 
     pub fn to_vecmap(self) -> TofnResult<VecMap<K, V>> {
-        self.map_to_vecmap(std::convert::identity)
+        self.map_to_vecmap(core::convert::identity)
     }
 
     pub fn map<W, F>(self, mut f: F) -> FillVecMap<K, W>
@@ -148,8 +150,8 @@ impl<K, V> FillVecMap<K, V> {
 }
 
 impl<K, V> IntoIterator for FillVecMap<K, V> {
-    type Item = <VecMapIter<K, std::vec::IntoIter<Option<V>>> as Iterator>::Item;
-    type IntoIter = VecMapIter<K, std::vec::IntoIter<Option<V>>>;
+    type Item = <VecMapIter<K, alloc::vec::IntoIter<Option<V>>> as Iterator>::Item;
+    type IntoIter = VecMapIter<K, alloc::vec::IntoIter<Option<V>>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.vec.into_iter()
@@ -161,9 +163,9 @@ impl<K, V> IntoIterator for FillVecMap<K, V> {
 impl<'a, K, V> IntoIterator for &'a FillVecMap<K, V> {
     type Item = (
         TypedUsize<K>,
-        <std::slice::Iter<'a, Option<V>> as Iterator>::Item,
+        <core::slice::Iter<'a, Option<V>> as Iterator>::Item,
     );
-    type IntoIter = VecMapIter<K, std::slice::Iter<'a, Option<V>>>;
+    type IntoIter = VecMapIter<K, core::slice::Iter<'a, Option<V>>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
