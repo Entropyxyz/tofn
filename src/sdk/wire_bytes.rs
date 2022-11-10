@@ -1,3 +1,5 @@
+use alloc::string::ToString;
+
 use crate::{collections::TypedUsize, sdk::api::TofnFatal};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tracing::{error, warn};
@@ -143,6 +145,9 @@ struct BytesVecVersioned {
 
 #[cfg(test)]
 mod tests {
+    use alloc::vec;
+    use alloc::vec::Vec;
+
     use bincode::{DefaultOptions, Options};
 
     use crate::sdk::wire_bytes::{decode, deserialize, encode, serialize, MAX_MSG_LEN};

@@ -50,7 +50,7 @@ impl<K, V> FillHoleVecMap<K, V> {
     pub fn is_empty(&self) -> bool {
         self.some_count == 0
     }
-    pub fn iter(&self) -> HoleVecMapIter<K, std::slice::Iter<Option<V>>> {
+    pub fn iter(&self) -> HoleVecMapIter<K, core::slice::Iter<Option<V>>> {
         self.hole_vec.iter()
     }
     pub fn map_to_holevec<W, F>(self, mut f: F) -> TofnResult<HoleVecMap<K, W>>
@@ -65,7 +65,7 @@ impl<K, V> FillHoleVecMap<K, V> {
             .map2_result(|(_, x)| Ok(f(x.ok_or(TofnFatal)?)))
     }
     pub fn to_holevec(self) -> TofnResult<HoleVecMap<K, V>> {
-        self.map_to_holevec(std::convert::identity)
+        self.map_to_holevec(core::convert::identity)
     }
 
     pub fn map<W, F>(self, mut f: F) -> FillHoleVecMap<K, W>
@@ -104,8 +104,8 @@ impl<K, V> FillHoleVecMap<K, V> {
 }
 
 impl<K, V> IntoIterator for FillHoleVecMap<K, V> {
-    type Item = <HoleVecMapIter<K, std::vec::IntoIter<Option<V>>> as Iterator>::Item;
-    type IntoIter = HoleVecMapIter<K, std::vec::IntoIter<Option<V>>>;
+    type Item = <HoleVecMapIter<K, alloc::vec::IntoIter<Option<V>>> as Iterator>::Item;
+    type IntoIter = HoleVecMapIter<K, alloc::vec::IntoIter<Option<V>>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.hole_vec.into_iter()
@@ -117,9 +117,9 @@ impl<K, V> IntoIterator for FillHoleVecMap<K, V> {
 impl<'a, K, V> IntoIterator for &'a FillHoleVecMap<K, V> {
     type Item = (
         TypedUsize<K>,
-        <std::slice::Iter<'a, Option<V>> as Iterator>::Item,
+        <core::slice::Iter<'a, Option<V>> as Iterator>::Item,
     );
-    type IntoIter = HoleVecMapIter<K, std::slice::Iter<'a, Option<V>>>;
+    type IntoIter = HoleVecMapIter<K, core::slice::Iter<'a, Option<V>>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()

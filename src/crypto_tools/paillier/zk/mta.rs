@@ -1,3 +1,5 @@
+use alloc::borrow::ToOwned;
+
 use crate::{
     collections::TypedUsize,
     crypto_tools::{
@@ -447,6 +449,9 @@ pub mod malicious {
 
 #[cfg(test)]
 pub(crate) mod tests {
+    use alloc::format;
+    use alloc::string::{String, ToString};
+
     use super::{
         malicious::{corrupt_proof, corrupt_proof_wc},
         BigNumber, Proof, Statement, StatementWc, Witness, ZkSetup,

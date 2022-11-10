@@ -1,3 +1,6 @@
+use alloc::boxed::Box;
+use alloc::vec::Vec;
+
 use super::{r1, KeygenShareIds, SignProtocolOutput, SignShareId, SignatureShare};
 use crate::{
     collections::{zip2, FillVecMap, P2ps},
@@ -119,7 +122,7 @@ impl Executer for R2 {
     }
 
     #[cfg(test)]
-    fn as_any(&self) -> &dyn std::any::Any {
+    fn as_any(&self) -> &dyn core::any::Any {
         self
     }
 }

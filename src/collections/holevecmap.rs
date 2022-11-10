@@ -50,7 +50,7 @@ impl<K, V> HoleVecMap<K, V> {
         self.vec
     }
 
-    pub fn iter(&self) -> HoleVecMapIter<K, std::slice::Iter<V>> {
+    pub fn iter(&self) -> HoleVecMapIter<K, core::slice::Iter<V>> {
         HoleVecMapIter::new(self.vec.iter(), self.hole)
     }
 
@@ -117,8 +117,8 @@ impl<K, V> HoleVecMap<K, V> {
 }
 
 impl<K, V> IntoIterator for HoleVecMap<K, V> {
-    type Item = (TypedUsize<K>, <std::vec::IntoIter<V> as Iterator>::Item);
-    type IntoIter = HoleVecMapIter<K, std::vec::IntoIter<V>>;
+    type Item = (TypedUsize<K>, <alloc::vec::IntoIter<V> as Iterator>::Item);
+    type IntoIter = HoleVecMapIter<K, alloc::vec::IntoIter<V>>;
 
     fn into_iter(self) -> Self::IntoIter {
         HoleVecMapIter::new(self.vec.into_iter(), self.hole)
@@ -128,8 +128,8 @@ impl<K, V> IntoIterator for HoleVecMap<K, V> {
 /// impl IntoIterator for &HoleVecMap as suggested here: https://doc.rust-lang.org/std/iter/index.html#iterating-by-reference
 /// follow the template of Vec: https://doc.rust-lang.org/src/alloc/vec/mod.rs.html#2451-2458
 impl<'a, K, V> IntoIterator for &'a HoleVecMap<K, V> {
-    type Item = (TypedUsize<K>, <std::slice::Iter<'a, V> as Iterator>::Item);
-    type IntoIter = HoleVecMapIter<K, std::slice::Iter<'a, V>>;
+    type Item = (TypedUsize<K>, <core::slice::Iter<'a, V> as Iterator>::Item);
+    type IntoIter = HoleVecMapIter<K, core::slice::Iter<'a, V>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()

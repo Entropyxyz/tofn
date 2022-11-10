@@ -1,9 +1,9 @@
-use ecdsa::elliptic_curve::ops::Reduce;
-use serde::{Deserialize, Serialize};
-use std::{
+use core::{
     array::TryFromSliceError,
     convert::{TryFrom, TryInto},
 };
+use ecdsa::elliptic_curve::ops::Reduce;
+use serde::{Deserialize, Serialize};
 
 /// Sign only 32-byte hash digests
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]

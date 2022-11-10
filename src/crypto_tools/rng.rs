@@ -1,4 +1,4 @@
-use std::{
+use core::{
     array::TryFromSliceError,
     convert::{TryFrom, TryInto},
 };
@@ -7,7 +7,7 @@ use ecdsa::elliptic_curve::generic_array::GenericArray;
 use hmac::{Hmac, Mac};
 use rand::{CryptoRng, RngCore, SeedableRng};
 use rand_chacha::ChaCha20Rng;
-use sha2::Sha256;
+use sha2::{digest::Update, Sha256};
 use tracing::error;
 use zeroize::Zeroize;
 
@@ -49,14 +49,14 @@ pub(crate) fn rng_seed<K>(
         return Err(TofnFatal);
     }
 
-    let mut prf = Hmac::<Sha256>::new(secret_recovery_key.0[..].into());
-
     // TODO: Use protocol domain separation: https://github.com/axelarnetwork/tofn/issues/184
-    prf.update(&tag.to_be_bytes());
-    prf.update(&party_id.to_bytes());
-    prf.update(session_nonce);
-
-    let seed = prf.finalize().into_bytes().into();
+    let seed = Hmac::<Sha256>::new(secret_recovery_key.0[..].into())
+        .chain(tag.to_be_bytes())
+        .chain(party_id.to_bytes())
+        .chain(session_nonce)
+        .finalize()
+        .into_bytes()
+        .into();
 
     Ok(ChaCha20Rng::from_seed(seed))
 }
@@ -86,13 +86,13 @@ pub(crate) fn rng_seed_ecdsa_signing_key(
     // https://docs.rs/generic-array/0.14.4/src/generic_array/lib.rs.html#553-563
     let hmac_key: &GenericArray<_, _> = (secret_recovery_key.0[..]).into();
 
-    let mut prf = Hmac::<Sha256>::new(hmac_key);
-
-    prf.update(&protocol_tag.to_be_bytes());
-    prf.update(&tag.to_be_bytes());
-    prf.update(session_nonce);
-
-    let seed = prf.finalize().into_bytes().into();
+    let seed = Hmac::<Sha256>::new(hmac_key)
+        .chain(protocol_tag.to_be_bytes())
+        .chain(tag.to_be_bytes())
+        .chain(session_nonce)
+        .finalize()
+        .into_bytes()
+        .into();
 
     Ok(ChaCha20Rng::from_seed(seed))
 }
@@ -110,17 +110,17 @@ pub(crate) fn rng_seed_ecdsa_ephemeral_scalar_with_party_id<K>(
     let mut signing_key_bytes = signing_key.to_bytes();
     let msg_to_sign_bytes = msg_to_sign.to_bytes();
 
-    let mut prf = Hmac::<Sha256>::new(&Default::default());
-
     // TODO: Use protocol domain separation: https://github.com/axelarnetwork/tofn/issues/184
-    prf.update(&tag.to_be_bytes());
-    prf.update(&party_id.to_bytes());
-    prf.update(&signing_key_bytes);
-    prf.update(&msg_to_sign_bytes);
+    let seed = Hmac::<Sha256>::new(&Default::default())
+        .chain(tag.to_be_bytes())
+        .chain(party_id.to_bytes())
+        .chain(signing_key_bytes)
+        .chain(msg_to_sign_bytes)
+        .finalize()
+        .into_bytes()
+        .into();
 
     signing_key_bytes.zeroize();
-
-    let seed = prf.finalize().into_bytes().into();
 
     Ok(ChaCha20Rng::from_seed(seed))
 }
@@ -138,16 +138,16 @@ pub(crate) fn rng_seed_ecdsa_ephemeral_scalar(
     let mut signing_key_bytes = signing_key.to_bytes();
     let msg_to_sign_bytes = message_digest.to_bytes();
 
-    let mut prf = Hmac::<Sha256>::new(&Default::default());
-
-    prf.update(&protocol_tag.to_be_bytes());
-    prf.update(&tag.to_be_bytes());
-    prf.update(&signing_key_bytes);
-    prf.update(&msg_to_sign_bytes);
+    let seed = Hmac::<Sha256>::new(&Default::default())
+        .chain(protocol_tag.to_be_bytes())
+        .chain(tag.to_be_bytes())
+        .chain(signing_key_bytes)
+        .chain(msg_to_sign_bytes)
+        .finalize()
+        .into_bytes()
+        .into();
 
     signing_key_bytes.zeroize();
-
-    let seed = prf.finalize().into_bytes().into();
 
     Ok(ChaCha20Rng::from_seed(seed))
 }

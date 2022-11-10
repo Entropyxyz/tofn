@@ -1,4 +1,8 @@
 //! Helpers for secret sharing
+
+use alloc::vec;
+use alloc::vec::Vec;
+
 use ecdsa::elliptic_curve::Field;
 use serde::{Deserialize, Serialize};
 // use tracing::error;
@@ -16,7 +20,7 @@ impl Ss {
         let secret_coeffs: Vec<k256::Scalar> = vec![alice_key]
             .into_iter()
             .chain(
-                std::iter::repeat_with(|| k256::Scalar::random(rand::thread_rng()))
+                core::iter::repeat_with(|| k256::Scalar::random(rand::thread_rng()))
                     .take(threshold - 1),
             )
             .collect();

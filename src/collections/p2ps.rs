@@ -1,3 +1,4 @@
+use alloc::vec;
 use tracing::error;
 
 use crate::{
@@ -26,7 +27,7 @@ impl<K, V> P2ps<K, V> {
         self.0.get(from)
     }
 
-    pub fn iter(&self) -> VecMapIter<K, std::slice::Iter<Option<HoleVecMap<K, V>>>> {
+    pub fn iter(&self) -> VecMapIter<K, core::slice::Iter<Option<HoleVecMap<K, V>>>> {
         self.0.iter()
     }
 
@@ -56,7 +57,7 @@ impl<K, V> P2ps<K, V> {
         )?))
     }
     pub fn to_fullp2ps(self) -> TofnResult<FullP2ps<K, V>> {
-        self.map_to_fullp2ps(std::convert::identity)
+        self.map_to_fullp2ps(core::convert::identity)
     }
 
     // private constructor does no checks, does not return TofnResult, cannot panic
@@ -69,9 +70,9 @@ impl<K, V> P2ps<K, V> {
 impl<K, V> IntoIterator for P2ps<K, V> {
     type Item = (
         TypedUsize<K>,
-        <std::vec::IntoIter<Option<HoleVecMap<K, V>>> as Iterator>::Item,
+        <alloc::vec::IntoIter<Option<HoleVecMap<K, V>>> as Iterator>::Item,
     );
-    type IntoIter = VecMapIter<K, std::vec::IntoIter<Option<HoleVecMap<K, V>>>>;
+    type IntoIter = VecMapIter<K, alloc::vec::IntoIter<Option<HoleVecMap<K, V>>>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -84,9 +85,9 @@ impl<K, V> IntoIterator for P2ps<K, V> {
 impl<'a, K, V> IntoIterator for &'a P2ps<K, V> {
     type Item = (
         TypedUsize<K>,
-        <std::slice::Iter<'a, Option<HoleVecMap<K, V>>> as Iterator>::Item,
+        <core::slice::Iter<'a, Option<HoleVecMap<K, V>>> as Iterator>::Item,
     );
-    type IntoIter = VecMapIter<K, std::slice::Iter<'a, Option<HoleVecMap<K, V>>>>;
+    type IntoIter = VecMapIter<K, core::slice::Iter<'a, Option<HoleVecMap<K, V>>>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
@@ -96,6 +97,8 @@ impl<'a, K, V> IntoIterator for &'a P2ps<K, V> {
 #[cfg(test)]
 mod tests {
     use crate::collections::{FillP2ps, TypedUsize};
+    use alloc::vec;
+    use alloc::vec::Vec;
 
     struct TestIndex;
 

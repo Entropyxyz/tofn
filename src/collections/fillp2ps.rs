@@ -72,10 +72,10 @@ impl<K, V> FillP2ps<K, V> {
         ))
     }
     pub fn to_fullp2ps(self) -> TofnResult<FullP2ps<K, V>> {
-        self.map_to_fullp2ps(std::convert::identity)
+        self.map_to_fullp2ps(core::convert::identity)
     }
     pub fn to_p2ps(self) -> TofnResult<P2ps<K, V>> {
-        self.map_to_p2ps(std::convert::identity)
+        self.map_to_p2ps(core::convert::identity)
     }
     pub fn map<W, F>(self, mut f: F) -> FillP2ps<K, W>
     where
@@ -93,14 +93,14 @@ impl<K, V> FillP2ps<K, V> {
         ))
     }
 
-    pub fn iter(&self) -> VecMapIter<K, std::slice::Iter<FillHoleVecMap<K, V>>> {
+    pub fn iter(&self) -> VecMapIter<K, core::slice::Iter<FillHoleVecMap<K, V>>> {
         self.0.iter()
     }
 
     pub fn iter_from(
         &self,
         from: TypedUsize<K>,
-    ) -> TofnResult<HoleVecMapIter<K, std::slice::Iter<Option<V>>>> {
+    ) -> TofnResult<HoleVecMapIter<K, core::slice::Iter<Option<V>>>> {
         Ok(self.0.get(from)?.iter())
     }
 }
@@ -108,9 +108,9 @@ impl<K, V> FillP2ps<K, V> {
 impl<K, V> IntoIterator for FillP2ps<K, V> {
     type Item = (
         TypedUsize<K>,
-        <std::vec::IntoIter<FillHoleVecMap<K, V>> as Iterator>::Item,
+        <alloc::vec::IntoIter<FillHoleVecMap<K, V>> as Iterator>::Item,
     );
-    type IntoIter = VecMapIter<K, std::vec::IntoIter<FillHoleVecMap<K, V>>>;
+    type IntoIter = VecMapIter<K, alloc::vec::IntoIter<FillHoleVecMap<K, V>>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -122,9 +122,9 @@ impl<K, V> IntoIterator for FillP2ps<K, V> {
 impl<'a, K, V> IntoIterator for &'a FillP2ps<K, V> {
     type Item = (
         TypedUsize<K>,
-        <std::slice::Iter<'a, FillHoleVecMap<K, V>> as Iterator>::Item,
+        <core::slice::Iter<'a, FillHoleVecMap<K, V>> as Iterator>::Item,
     );
-    type IntoIter = VecMapIter<K, std::slice::Iter<'a, FillHoleVecMap<K, V>>>;
+    type IntoIter = VecMapIter<K, core::slice::Iter<'a, FillHoleVecMap<K, V>>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()

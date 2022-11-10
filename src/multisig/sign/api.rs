@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use super::r1;
 use crate::{
     collections::{HoleVecMap, Subset, TypedUsize, VecMap},

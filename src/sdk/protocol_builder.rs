@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use crate::collections::{FillVecMap, HoleVecMap};
 
 use super::{

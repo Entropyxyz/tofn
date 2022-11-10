@@ -1,5 +1,7 @@
+use alloc::vec::Vec;
+
+use core::iter::FromIterator;
 use serde::{Deserialize, Serialize};
-use std::iter::FromIterator;
 use tracing::error;
 use zeroize::Zeroize;
 
@@ -8,7 +10,7 @@ use crate::sdk::api::{TofnFatal, TofnResult};
 use super::{vecmap_iter::VecMapIter, HoleVecMap, TypedUsize};
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct VecMap<K, V>(Vec<V>, std::marker::PhantomData<TypedUsize<K>>);
+pub struct VecMap<K, V>(Vec<V>, core::marker::PhantomData<TypedUsize<K>>);
 
 impl<K, V> Zeroize for VecMap<K, V>
 where
@@ -21,7 +23,7 @@ where
 
 impl<K, V> VecMap<K, V> {
     pub fn from_vec(vec: Vec<V>) -> Self {
-        Self(vec, std::marker::PhantomData)
+        Self(vec, core::marker::PhantomData)
     }
     pub fn into_vec(self) -> Vec<V> {
         self.0
@@ -63,10 +65,10 @@ impl<K, V> VecMap<K, V> {
         Ok(HoleVecMap::from_vecmap(self, hole))
     }
 
-    pub fn iter(&self) -> VecMapIter<K, std::slice::Iter<V>> {
+    pub fn iter(&self) -> VecMapIter<K, core::slice::Iter<V>> {
         VecMapIter::new(self.0.iter())
     }
-    pub fn iter_mut(&mut self) -> VecMapIter<K, std::slice::IterMut<V>> {
+    pub fn iter_mut(&mut self) -> VecMapIter<K, core::slice::IterMut<V>> {
         VecMapIter::new(self.0.iter_mut())
     }
     pub fn map<W, F>(self, f: F) -> VecMap<K, W>
@@ -107,8 +109,8 @@ impl<K, V> VecMap<K, V> {
 }
 
 impl<K, V> IntoIterator for VecMap<K, V> {
-    type Item = (TypedUsize<K>, <std::vec::IntoIter<V> as Iterator>::Item);
-    type IntoIter = VecMapIter<K, std::vec::IntoIter<V>>;
+    type Item = (TypedUsize<K>, <alloc::vec::IntoIter<V> as Iterator>::Item);
+    type IntoIter = VecMapIter<K, alloc::vec::IntoIter<V>>;
 
     fn into_iter(self) -> Self::IntoIter {
         VecMapIter::new(self.0.into_iter())
@@ -118,8 +120,8 @@ impl<K, V> IntoIterator for VecMap<K, V> {
 /// impl IntoIterator for &VecMap as suggested here: https://doc.rust-lang.org/std/iter/index.html#iterating-by-reference
 /// follow the template of Vec: https://doc.rust-lang.org/src/alloc/vec/mod.rs.html#2451-2458
 impl<'a, K, V> IntoIterator for &'a VecMap<K, V> {
-    type Item = (TypedUsize<K>, <std::slice::Iter<'a, V> as Iterator>::Item);
-    type IntoIter = VecMapIter<K, std::slice::Iter<'a, V>>;
+    type Item = (TypedUsize<K>, <core::slice::Iter<'a, V> as Iterator>::Item);
+    type IntoIter = VecMapIter<K, core::slice::Iter<'a, V>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()

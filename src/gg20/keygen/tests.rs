@@ -1,3 +1,8 @@
+use alloc::format;
+use alloc::string::{String, ToString};
+use alloc::vec;
+use alloc::vec::Vec;
+
 use super::*;
 use crate::{
     collections::{zip2, HoleVecMap, TypedUsize, VecMap},

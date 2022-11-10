@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use crate::{
     collections::{zip2, FillVecMap, FullP2ps, P2ps, VecMap},
     crypto_tools::paillier,
@@ -119,7 +121,7 @@ impl Executer for R3Sad {
     }
 
     #[cfg(test)]
-    fn as_any(&self) -> &dyn std::any::Any {
+    fn as_any(&self) -> &dyn core::any::Any {
         self
     }
 }

@@ -5,6 +5,8 @@
 /// (which also implies that N is square-free).
 /// Parameters M = 11, alpha = 6370 have been selected from
 /// Section 6.2.3 of https://eprint.iacr.org/2018/987.pdf
+use alloc::vec;
+
 use libpaillier::unknown_order::BigNumber;
 use serde::{Deserialize, Serialize};
 use sha2::digest::*;
@@ -230,9 +232,12 @@ mod tests {
     #[test]
     fn test_primorial() {
         let alpha = 6370;
-        let mut primorial = BigNumber::one();
 
-        for i in 1..alpha {
+        // Some bignumber backends don't consider `2` to be a prime,
+        // so we start the multiplication from `3`.
+        let mut primorial = BigNumber::one() * 2;
+
+        for i in 3..alpha {
             if BigNumber::from(i).is_prime() {
                 primorial *= i;
             }

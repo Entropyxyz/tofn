@@ -97,8 +97,8 @@ fn execute_test_case<F, K, P, const MAX_MSG_IN_LEN: usize>(
     shares: VecMap<K, Protocol<F, K, P, MAX_MSG_IN_LEN>>,
     test_case: SingleFaulterTestCase<K, P>,
 ) where
-    K: PartialEq + std::fmt::Debug + Clone + Copy, // TODO can't quite escape ugly trait bounds :(
-    P: PartialEq + std::fmt::Debug + Clone + Copy,
+    K: PartialEq + core::fmt::Debug + Clone + Copy, // TODO can't quite escape ugly trait bounds :(
+    P: PartialEq + core::fmt::Debug + Clone + Copy,
 {
     let shares = execute_protocol(shares, &test_case).expect("internal tofn error");
 

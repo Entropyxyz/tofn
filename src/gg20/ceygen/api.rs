@@ -1,3 +1,6 @@
+use alloc::vec;
+use alloc::vec::Vec;
+
 use crate::gg20::keygen::{
     KeygenPartyId, KeygenPartyShareCounts, KeygenShareId, PartyKeyPair, PartyKeygenData,
 };
@@ -19,20 +22,12 @@ use crate::{
     },
     sdk::api::{PartyShareCounts, TofnFatal, TofnResult},
 };
-use bincode::Options;
-use chrono::{Datelike, Timelike, Utc};
-pub use rng::SecretRecoveryKey;
-use std::{
-    convert::TryInto,
-    ops::Mul,
-    path::{Path, PathBuf},
-};
-use tracing::error;
-// use chrono::{Datelike, Timelike, Utc};
 use anyhow::Result;
-// use ecdsa::elliptic_curve::{self};
+use bincode::Options;
+use core::{convert::TryInto, ops::Mul};
 use k256::{NonZeroScalar, SecretKey};
-// use std::{fs, path::Path};
+pub use rng::SecretRecoveryKey;
+use tracing::error;
 use tracing::info;
 
 /// Pre-image of `SecretKeyShare` in ceygen.
@@ -74,7 +69,9 @@ pub fn ceygen(parties: usize, threshold: usize, alice_key_byte_array: &[u8]) -> 
 
     // encode party_share_counts
     let bincode = bincode::DefaultOptions::new();
-    let party_share_counts_encoded = bincode.serialize(&party_share_counts)?;
+    let party_share_counts_encoded = bincode
+        .serialize(&party_share_counts)
+        .map_err(|err| anyhow::Error::msg("Failed to serialize PartyShareCounts").context(err))?;
 
     info!("ceygen generated {}-of-{} keys", threshold, parties);
     Ok((party_share_counts_encoded, secret_key_shares_encoded))
@@ -82,42 +79,11 @@ pub fn ceygen(parties: usize, threshold: usize, alice_key_byte_array: &[u8]) -> 
 
 // validate alice_key and return a SecretKey if valid.
 fn validate_secret_key(alice_key_byte_array: &[u8]) -> Result<NonZeroScalar> {
-    Ok(SecretKey::from_be_bytes(alice_key_byte_array)?.to_nonzero_scalar())
+    Ok(SecretKey::from_be_bytes(alice_key_byte_array)
+        .map_err(|err| anyhow::Error::msg("Failed to deserialize SecretKey").context(err))?
+        .to_nonzero_scalar())
 }
 
-/// Write ceygen results to an output directory.
-pub fn write_ceygen_results(ceygen: Ceygen, output_dir: Option<PathBuf>) -> Result<()> {
-    let path = output_dir.unwrap_or_else(|| {
-        let timestamp = timestamp();
-        PathBuf::from(format!("tofn_ceygen_{timestamp}"))
-    });
-    std::fs::create_dir(path.clone())?;
-
-    // write secret key shares and party share counts to dir
-    let (psce, skse) = ceygen;
-    let path_s = path.to_str().unwrap();
-    skse.into_iter().for_each(|(index, encoded_share)| {
-        std::fs::write(Path::new(&(format!("{}/{}", path_s, index))), encoded_share).unwrap();
-    });
-    std::fs::write(Path::new(&format!("{}/party_share_counts", path_s)), psce)?;
-
-    info!("ceygen keyshares written to: {}", path_s);
-    Ok(())
-}
-
-/// helper, get a quick timestamp
-fn timestamp() -> String {
-    let now = Utc::now();
-    format!(
-        "{}{}{}:{}{}{}",
-        now.year(),
-        now.month(),
-        now.day(),
-        now.hour(),
-        now.minute(),
-        now.second()
-    )
-}
 pub(crate) fn initialize_honest_parties(
     party_share_counts: &PartyShareCounts<KeygenPartyId>,
     threshold: usize,

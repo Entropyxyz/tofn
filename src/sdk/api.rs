@@ -1,4 +1,6 @@
 //! API for tofn users
+use alloc::vec::Vec;
+
 pub use k256::ecdsa::{recoverable::Signature as RecoverableSignature, Signature, VerifyingKey};
 
 use ecdsa::hazmat::VerifyPrimitive;

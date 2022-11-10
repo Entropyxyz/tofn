@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{
     collections::{Subset, TypedUsize, VecMap, VecMapIter},
     sdk::api::{TofnFatal, TofnResult, MAX_PARTY_SHARE_COUNT, MAX_TOTAL_SHARE_COUNT},
@@ -46,7 +48,7 @@ impl<P> PartyShareCounts<P> {
     pub fn party_count(&self) -> usize {
         self.party_share_counts.len()
     }
-    pub fn iter(&self) -> VecMapIter<P, std::slice::Iter<usize>> {
+    pub fn iter(&self) -> VecMapIter<P, core::slice::Iter<usize>> {
         self.party_share_counts.iter()
     }
     pub fn share_to_party_subshare_ids<K>(
@@ -152,6 +154,8 @@ impl<P> PartyShareCounts<P> {
 
 #[cfg(test)]
 mod tests {
+    use alloc::vec;
+
     use super::*;
 
     struct TestParty;
@@ -195,7 +199,7 @@ mod tests {
     }
 
     fn subset<P>(max_size: usize, vec: Vec<usize>) -> Subset<P> {
-        let len = std::cmp::max(max_size, vec.len());
+        let len = core::cmp::max(max_size, vec.len());
         let mut output = Subset::with_max_size(len);
         for i in vec {
             output.add(TypedUsize::from_usize(i)).unwrap();

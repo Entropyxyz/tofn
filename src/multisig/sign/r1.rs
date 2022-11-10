@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use super::{r2, KeygenShareIds, MessageDigest, SignProtocolBuilder, SignShareId};
 use crate::{
     collections::TypedUsize,

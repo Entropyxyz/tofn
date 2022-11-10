@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use super::{KeygenPartyId, KeygenPartyShareCounts, KeygenShareId};
 use crate::{
     collections::{TypedUsize, VecMap},
