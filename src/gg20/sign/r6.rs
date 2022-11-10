@@ -320,8 +320,6 @@ impl Executer for R6 {
 #[cfg(feature = "malicious")]
 mod malicious {
 
-    use alloc::boxed::Box;
-
     use super::R6;
     use crate::{
         collections::{HoleVecMap, TypedUsize},
@@ -368,10 +366,11 @@ mod malicious {
             recipient: TypedUsize<SignShareId>,
             beta_secret: Secret,
         ) -> Secret {
+            let mut beta_secret = beta_secret;
             if let R3BadBeta { victim } = self.behaviour {
                 if victim == recipient {
                     log_confess_info(my_sign_id, &self.behaviour, "step 2/2: beta_secret");
-                    *Box::new(beta_secret.beta).as_mut() += k256::Scalar::ONE;
+                    beta_secret.beta += k256::Scalar::ONE;
                 }
             }
             beta_secret
