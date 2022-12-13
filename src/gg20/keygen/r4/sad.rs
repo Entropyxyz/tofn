@@ -97,7 +97,7 @@ impl Executer for R4Sad {
                 }
 
                 // verify encryption
-                let share_ciphertext = accuser_ek.encrypt_with_randomness(
+                let share_ciphertext = accuser_ek.encrypt_unchecked(
                     &accusation.share.get_scalar().into(),
                     &accusation.randomness,
                 );

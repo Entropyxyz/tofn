@@ -292,14 +292,10 @@ impl ZkSetup {
         }
 
         // u ?= Paillier-Enc(s1, s) * c^(-e) mod N^2
-        let u_check = stmt
-            .ek
-            .encrypt_with_randomness(&proof.s1, &proof.s)
-            .0
-            .modmul(
-                &stmt.ciphertext.0.modpow(&e_neg_bigint, stmt.ek.0.nn()),
-                stmt.ek.0.nn(),
-            );
+        let u_check = stmt.ek.encrypt_unchecked(&proof.s1, &proof.s).0.modmul(
+            &stmt.ciphertext.0.modpow(&e_neg_bigint, stmt.ek.0.nn()),
+            stmt.ek.0.nn(),
+        );
         if u_check != proof.u.0 {
             warn!("range proof: u check failed");
             return false;

@@ -13,10 +13,10 @@ pub fn safe_primes(c: &mut Criterion) {
 
     g.bench_function("unsafe primes", |b| {
         b.iter(|| {
-            let p = BigNumber::prime_with_rng(&mut rng, 1024);
-            let q = BigNumber::prime_with_rng(&mut rng, 1024);
+            let p = BigNumber::prime_from_rng(1024, &mut rng);
+            let q = BigNumber::prime_from_rng(1024, &mut rng);
 
-            let dk = DecryptionKey::with_safe_primes_unchecked(&p, &q).unwrap();
+            let dk = DecryptionKey::with_primes_unchecked(&p, &q).unwrap();
 
             let ek: EncryptionKey = dk.borrow().into();
 
@@ -28,7 +28,7 @@ pub fn safe_primes(c: &mut Criterion) {
 
     g.bench_function("safe primes", |b| {
         b.iter(|| {
-            let dk = DecryptionKey::with_rng(&mut rng).unwrap();
+            let dk = DecryptionKey::from_rng_with_safe_primes(&mut rng).unwrap();
 
             let ek: EncryptionKey = dk.borrow().into();
 

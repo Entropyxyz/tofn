@@ -140,7 +140,7 @@ impl Executer for R8Type7 {
 
             // k_i
             let k_i_ciphertext =
-                peer_ek.encrypt_with_randomness(&bcast.k_i.borrow().into(), &bcast.k_i_randomness);
+                peer_ek.encrypt_unchecked(&bcast.k_i.borrow().into(), &bcast.k_i_randomness);
             if k_i_ciphertext != self.r1bcasts.get(peer_sign_id)?.k_i_ciphertext {
                 warn!(
                     "peer {} says: invalid k_i detected from peer {}",
@@ -153,7 +153,7 @@ impl Executer for R8Type7 {
 
             // mu_ij
             for (receiver_sign_id, peer_mta_wc_plaintext) in peer_p2ps {
-                let peer_mu_ciphertext = peer_ek.encrypt_with_randomness(
+                let peer_mu_ciphertext = peer_ek.encrypt_unchecked(
                     &peer_mta_wc_plaintext.mu_plaintext,
                     &peer_mta_wc_plaintext.mu_randomness,
                 );

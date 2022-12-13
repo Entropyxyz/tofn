@@ -24,10 +24,10 @@ pub mod zk;
 pub fn keygen_unsafe(
     rng: &mut (impl CryptoRng + RngCore),
 ) -> TofnResult<(EncryptionKey, DecryptionKey)> {
-    let p = BigNumber::prime_with_rng(rng, 1024);
-    let q = BigNumber::prime_with_rng(rng, 1024);
+    let p = BigNumber::prime_from_rng(1024, rng);
+    let q = BigNumber::prime_from_rng(1024, rng);
 
-    let dk = libpaillier::DecryptionKey::with_safe_primes_unchecked(&p, &q).ok_or(TofnFatal)?;
+    let dk = libpaillier::DecryptionKey::with_primes_unchecked(&p, &q).ok_or(TofnFatal)?;
     let ek = dk.borrow().into();
 
     Ok((EncryptionKey(ek), DecryptionKey(dk)))
@@ -35,7 +35,7 @@ pub fn keygen_unsafe(
 
 /// Generate a Paillier keypair (using safe primes)
 pub fn keygen(rng: &mut (impl CryptoRng + RngCore)) -> TofnResult<(EncryptionKey, DecryptionKey)> {
-    let dk = libpaillier::DecryptionKey::with_rng(rng).ok_or(TofnFatal)?;
+    let dk = libpaillier::DecryptionKey::from_rng_with_safe_primes(rng).ok_or(TofnFatal)?;
     let ek = dk.borrow().into();
 
     Ok((EncryptionKey(ek), DecryptionKey(dk)))
@@ -82,11 +82,11 @@ impl EncryptionKey {
         // Sampling a random integer mod N has negligible probability of not being co-prime
         let r = self.sample_randomness();
 
-        (self.encrypt_with_randomness(p, &r), r)
+        (self.encrypt_unchecked(p, &r), r)
     }
 
-    pub fn encrypt_with_randomness(&self, p: &Plaintext, r: &Randomness) -> Ciphertext {
-        Ciphertext(self.0.encrypt_with_randomness(&p.0, &r.0))
+    pub fn encrypt_unchecked(&self, p: &Plaintext, r: &Randomness) -> Ciphertext {
+        Ciphertext(self.0.encrypt_unchecked(&p.0, &r.0))
     }
 
     /// Homomorphically add `c1` to `c2`
@@ -167,7 +167,7 @@ impl Randomness {
 
     /// Generate a random number in the range `[0, n)` with the provided `rng`
     pub fn generate_with_rng(rng: &mut (impl CryptoRng + RngCore), n: &BigNumber) -> Self {
-        Self(BigNumber::random_with_rng(rng, n))
+        Self(BigNumber::from_rng(n, rng))
     }
 }
 
