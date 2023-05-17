@@ -107,7 +107,7 @@ fn sign(cli: SignCli) -> anyhow::Result<()> {
         "{}/{}",
         cli.dir, PARTY_SHARE_COUNTS_FILE
     )))
-    .unwrap();
+    .expect("Directory doesn't contain key material for signers");
     let party_share_counts: PartyShareCounts<KeygenPartyId> =
         bincode.deserialize(&v_serialized).unwrap();
 
@@ -139,7 +139,7 @@ fn sign(cli: SignCli) -> anyhow::Result<()> {
     };
     let msg_to_sign = MessageDigest::try_from(&*msg_digest).unwrap();
     let sign_shares = keygen_share_ids.map(|keygen_share_id| {
-        let secret_key_share = secret_key_shares.get(keygen_share_id).unwrap();
+        let secret_key_share = secret_key_shares.get(keygen_share_id).expect("Expected a secret key share for this ID");
         new_sign(
             secret_key_share.group(),
             secret_key_share.share(),
