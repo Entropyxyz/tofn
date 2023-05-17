@@ -1,6 +1,6 @@
 # Ceygen only (Entropy CLI instructions)
 ```
-cargo build release
+cargo build --release
 # generate 2-of-2 keys. Note that threshold of 1 implies the need for 2 parties.
 # writes to tofn_ceygen_<timestamp>
 ./target/release/tofn ceygen -p 2 -t 1 
